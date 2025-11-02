@@ -8,7 +8,9 @@
     }
   ],
   "minimum-stability": "dev",
+  "license": "MIT",
   "require": {
+    "php": ">=8.3",
     "ext-zip": "*"
   },
   "scripts": {
