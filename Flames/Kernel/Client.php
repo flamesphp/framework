@@ -9,7 +9,7 @@ use Flames\Js;
  */
 final class Client
 {
-    public const VERSION = 'alpha1.19';
+    public const VERSION = '1.0.0';
     public const MODULE  = 'CLIENT';
 
     private static bool $isNativeBuild = false;

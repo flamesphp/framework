@@ -16,9 +16,9 @@ use Flames\Router\Client;
  */
 final class Kernel
 {
-    public const VERSION = 'v0.0.41-alpha';
+    public const VERSION = 'v1.0.0';
     public const MODULE  = 'SERVER';
-    public const CDN_VERSION = 'v0.0.41-alpha';
+    public const CDN_VERSION = 'v1.0.0';
 
     protected static Router|null $defaultRouter = null;
     protected static ErrorHandler\Run|null $errorHandler = null;
@@ -197,8 +197,8 @@ final class Kernel
             return false;
         }
 
-        if (Cli::isCli() === false && str_starts_with($_SERVER['REQUEST_URI'], '/flames')) {
-            if (Client::run($_SERVER['REQUEST_URI']) !== false) {
+        if (Cli::isCli() === false && str_starts_with(@$_SERVER['REQUEST_URI'], '/flames')) {
+            if (Client::run(@$_SERVER['REQUEST_URI']) !== false) {
                 return true;
             }
         }
@@ -277,7 +277,7 @@ final class Kernel
      */
     protected static function renderDirectFile() : bool
     {
-        $uri = explode('?', $_SERVER['REQUEST_URI'])[0];
+        $uri = explode('?', @$_SERVER['REQUEST_URI'])[0];
 
         if (str_starts_with($uri, '/') === true) {
             $uri = substr($uri, 1);
@@ -360,7 +360,7 @@ final class Kernel
         $path = (realpath(__DIR__ . '/../') . '/');
         define('FLAMES_PATH', $path . 'Flames/');
 
-        if (str_ends_with(str_replace('\\', '/', $path), 'vendor/flamesphp/flames/') === true) {
+        if (str_ends_with(str_replace('\\', '/', $path), 'vendor/flamesphp/framework/') === true) {
             define('FLAMES_COMPOSER', true);
             return (realpath($path . '../../../') . '/');
         } else {

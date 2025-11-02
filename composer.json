@@ -1,6 +1,7 @@
 {
   "name": "flamesphp/framework",
   "description": "The Flames PHP Framework.",
+  "keywords": ["framework", "laravel"],
   "authors": [
     {
       "name": "Gabriel 'Kazz' Morgado",
@@ -8,21 +9,13 @@
     }
   ],
   "type": "project",
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "license": "MIT",
   "require": {
-    "php": ">=8.3",
-    "ext-zip": "*"
-  },
-  "scripts": {
-    "post-package-install": ["echo 'test'"],
-    "post-install-cmd": ["echo 'test2'"],
-    "post-create-project-cmd": ["echo 'test3'"],
-    "setup":  ["echo 'test4'"],
-    "dev":  ["echo 'test5'"],
-    "post-update-cmd":  ["echo 'test4'"],
-    "post-root-package-install":  ["echo 'test5'"],
-    "post-create-project-cmd":  ["echo 'test6'"]
+    "php": "^8.3",
+    "ext-zip": "*",
+    "ext-mbstring": "*"
   }
 }
 
