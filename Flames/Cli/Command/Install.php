@@ -59,6 +59,12 @@ final class Install
             copy($binDistPath, $binPath);
         }
 
+        $indexPath = (ROOT_PATH . 'index.php');
+        if (file_exists($indexPath) === false) {
+            $indexDistPath = (FLAMES_PATH . 'Kernel/Raw/index.php');
+            copy($indexDistPath, $indexPath);
+        }
+
         $appPath = (ROOT_PATH . 'App');
         if (is_dir($appPath) === false) {
             $mask = umask(0);
