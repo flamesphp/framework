@@ -7,6 +7,7 @@
       "email": "kazzxd1@gmail.com"
     }
   ],
+  "type": "project",
   "minimum-stability": "dev",
   "license": "MIT",
   "require": {
@@ -14,10 +15,13 @@
     "ext-zip": "*"
   },
   "scripts": {
-    "post-package-install": "echo 'test'",
-    "post-install-cmd": "echo 'test2'",
-    "post-create-project-cmd": [
-      "echo 'test3'"
-    ]
+    "post-package-install": ["echo 'test'"],
+    "post-install-cmd": ["echo 'test2'"],
+    "post-create-project-cmd": ["echo 'test3'"],
+    "setup":  ["echo 'test4'"],
+    "dev":  ["echo 'test5'"],
+    "post-update-cmd":  ["echo 'test4'"],
+    "post-root-package-install":  ["echo 'test5'"],
+    "post-create-project-cmd":  ["echo 'test6'"]
   }
 }
