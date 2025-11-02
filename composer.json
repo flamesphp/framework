@@ -1,5 +1,5 @@
 {
-  "name": "flamesphp/flames",
+  "name": "flamesphp/framework",
   "description": "The Flames PHP Framework.",
   "authors": [
     {
@@ -25,3 +25,4 @@
     "post-create-project-cmd":  ["echo 'test6'"]
   }
 }
+
