@@ -12,6 +12,10 @@
     "ext-zip": "*"
   },
   "scripts": {
-    "post-package-install": "echo 'test'"
+    "post-package-install": "echo 'test'",
+    "post-install-cmd": "echo 'test2'",
+    "post-create-project-cmd": [
+      "echo 'test3'"
+    ]
   }
 }
