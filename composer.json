@@ -10,5 +10,8 @@
   "minimum-stability": "dev",
   "require": {
     "ext-zip": "*"
+  },
+  "scripts": {
+    "post-package-install": "echo 'test'"
   }
 }
