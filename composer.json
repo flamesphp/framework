@@ -8,7 +8,7 @@
     }
   ],
   "type": "project",
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "license": "MIT",
   "require": {
     "php": ">=8.3",
