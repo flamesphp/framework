@@ -1,6 +1,7 @@
 <?php
 
 namespace Flames;
+
 use Flames\Collection\Arr;
 
 class Jwt
@@ -49,7 +50,7 @@ class Jwt
             $data = $data->toArray();
         }
 
-        return \Flames\Jwt\JWT\JWT::encode($data, $this->privateKey, 'RS256');
+        return \Flames\Jwt\JWT::encode($data, $this->privateKey, 'RS256');
     }
 
     public function decode(string $token)
@@ -58,7 +59,7 @@ class Jwt
             throw new \Exception('Invalid public key.');
         }
 
-        $data = \Flames\Jwt\JWT\JWT::decode($token, new \Flames\Jwt\JWT\Key($this->publicKey, 'RS256'));
+        $data = \Flames\Jwt\JWT::decode($token, new \Flames\Jwt\Key($this->publicKey, 'RS256'));
         return Arr((array)$data);
     }
 }

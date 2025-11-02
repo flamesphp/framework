@@ -24,7 +24,17 @@ final class Automate
     {
         $this->debug = $debug;
 
-        $ignorePath = Environment::get('CLIENT_AUTO_BUILD_IGNORE_PATHS');
+        if ($this->debug === true) {
+            echo 'Current modified hash: ' . $this->getCurrentHash();
+        }
+
+        return true;
+    }
+
+    public function getCurrentHash()
+    {
+        $ignorePath = Environment::get('AUTO_BUILD_IGNORE_PATHS');
+
         if ($ignorePath !== null) {
             $ignorePathSplit = explode(',', $ignorePath);
             if (is_array($ignorePathSplit)) {
@@ -33,75 +43,7 @@ final class Automate
         }
 
         $this->getCurrentFileTimes();
-        $this->fileChangedTimeHandler();
-
-        return true;
-    }
-
-    protected function fileChangedTimeHandler()
-    {
-        if (count($this->files) === 0) {
-            return;
-        }
-
-        if (Cli::isCli() === false) {
-            try {
-                ini_set('max_execution_time', 60);
-            } catch (\Exception|\Error|\ErrorException $_) {}
-            set_time_limit(60);
-        }
-
-        while (true) {
-            usleep(500000);
-            $fileModified = $this->getFileModified();
-            if ($fileModified !== null) {
-                $data = (object)[];
-                $recompile = false;
-                if ($fileModified['type']=== 'view') {
-                    $data->file = str_replace('\\', '/', substr($fileModified['path'], strlen(APP_PATH . 'Client/View/')));
-                    $data->type = 'view';
-                } elseif ($fileModified['type'] === 'public') {
-                    $data->file = str_replace('\\', '/', substr($fileModified['path'], strlen(APP_PATH . 'Client/Public/')));
-                    $data->type = 'public';
-                } elseif ($fileModified['type'] === 'client') {
-                    $recompile = true;
-                    $data->file = str_replace('\\', '/', substr($fileModified['path'], strlen(APP_PATH . 'Client/')));
-                    $split = explode('/', $data->file);
-                    $data->type = strtolower($split[0]);
-                    $data->file = '';
-                    $splitCount = count($split);
-                    for ($i = 1; $i < $splitCount; $i++) {
-                        $data->file .= ($split[$i] . '/');
-                    }
-                    if ($data->file !== '') {
-                        $data->file = substr($data->file, 0, -1);
-                    }
-                } elseif ($fileModified['type'] === 'config') {
-                    $recompile = true;
-                    $data->file = str_replace('\\', '/', substr($fileModified['path'], strlen(ROOT_PATH)));
-                    $data->type = 'config';
-                }
-
-                if (Cli::isCli() === true) {
-                    if ($this->debug === true) {
-                        echo ('File changed [' . $data->type . '] ' . $data->file . "\n");
-                    }
-                    if ($recompile === true) {
-                        echo ("\n");
-                        Command::run('build:assets');
-                    }
-                }
-                else {
-                    if ($recompile === true) {
-                        Command::run('build:assets');
-                    }
-                    header('Content-Type: application/json');
-                    echo json_encode($data);
-                    exit;
-                }
-                exit;
-            }
-        }
+        return sha1(serialize($this->files));
     }
 
     protected function getFileModified()

@@ -8,6 +8,8 @@ use Flames\Cli\Command\Key\Generate as KeyGenerate;
 use Flames\Cli\Command\Crypto\Key\Generate as CryptoKeyGenerate;
 use Flames\Cli\Command\Build\Assets;
 use Flames\Cli\Command\Build\App\StaticEx;
+use Flames\Cli\Command\Build\App\Native;
+use Flames\Cli\Command\Build\App\Mobile;
 use Flames\Cli\Command\Server;
 use Flames\Cli\Data;
 use Flames\Collection\Arr;
@@ -28,6 +30,8 @@ final class System
         'server'                    => Server::class,
         'build:assets'              => Assets::class,
         'build:app:static'          => StaticEx::class,
+        'build:app:native'          => Native::class,
+        'build:app:mobile'          => Mobile::class,
         'internal:coroutine'        => Coroutine::class
     ];
 
@@ -127,18 +131,22 @@ Initializing command ' . $this->data->command . '
         if ($this->debug === true) {
             $buffer = '
 Available commands:
-  * install                           | install
-  * install --nokey                   | install without generate unique key
-  * install --nocryptographykey       | install without generate cryptography unique key
-  * install --noexample               | install without example project
-  * key:generate                      | create or update project unique key
-  * server                            | run a development server
-  * server {host}:{port}              | run a development server at specific host (default 0.0.0.0) and port (default 80)
-  * server -host={host}               | run a development server at specific host (default 0.0.0.0)
-  * server -port={port}               | run a development server at specific port (default 80)
-  * build:assets                      | build clientside assets, like controllers, events, components and resource
-  * build:app:static                  | build complete project as static html pages
-  * build:app:static --cloudflare     | build complete project as static html pages for CloudFlare Pages
+  * install                                | install
+  * install --nokey                        | install without generate unique key
+  * install --nocryptographykey            | install without generate cryptography unique key
+  * install --noexample                    | install without example project
+  * key:generate                           | create or update project unique key
+  * server                                 | run a development server
+  * server {host}:{port}                   | run a development server at specific host (default 0.0.0.0) and port (default 80)
+  * server -host={host}                    | run a development server at specific host (default 0.0.0.0)
+  * server -port={port}                    | run a development server at specific port (default 80)
+  * build:assets                           | build clientside assets, like controllers, events, components and resource
+  * build:app:static                       | build complete app as static html pages
+  * build:app:static --cloudflare          | build complete app as static html pages for CloudFlare Pages
+  * build:app:native                       | build app webview for linux or windows
+  * build:app:native --linux               | build app webview for linux
+  * build:app:native --windows             | build app webview for windows
+  * build:app:native --windows --installer | build app webview installer for windows
 ';
             echo $buffer;
         }

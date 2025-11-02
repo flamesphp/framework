@@ -196,6 +196,52 @@ class MySql extends DefaultEx
         return $this;
     }
 
+    public function whereIn(string $key, mixed $value = null)
+    {
+        return $this->_whereIn('AND', $key, $value);
+    }
+
+    public function orWhereIn(string $key, mixed $value = null)
+    {
+        return $this->_whereIn('OR', $key, $value);
+    }
+
+    protected function _whereIn(string $operator, string $key, mixed $value = null)
+    {
+        if ($this->mode === 'model') {
+            if (isset($this->modelData->column[$key]) === false) {
+                throw new \Exception('Model key ' . $key . ' not found in class ' . $this->modelData->class);
+            }
+
+            $data = [];
+            foreach ($value as $_value) {
+                $data[] = $this->_castDataPre([$key => $_value]);
+            }
+            if (count($data) === 0) {
+                throw new Exception('WhereIn for model key ' . $key . ' in class ' . $this->modelData->class . ' can\'t be empty.');
+            }
+
+            $this->wheres[] = [
+                'type' => 'default',
+                'key' => $this->modelData->column[$key]->name,
+                'condition' => 'IN',
+                'value' => $value,
+                'operator' => $operator
+            ];
+        } else {
+            $this->wheres[] = [
+                'type' => 'default',
+                'key' => $key,
+                'condition' => 'IN',
+                'value' => $value,
+                'operator' => $operator
+            ];
+        }
+
+        return $this;
+    }
+
+
     public function whereRaw(string $condition, mixed $values = null)
     {
         return $this->_whereRaw('AND', $condition, $values);
@@ -234,17 +280,31 @@ class MySql extends DefaultEx
                 if ($where['type'] === 'default') {
                     $whereParam = (':where_' . $this->whereBaseIndex . $whereIndex . '_' . $where['key']);
 
-                    if ($where['condition'] === 'LIKE') {
-                        $whereParam = (
-                            'CONCAT(\'%\', ' .
-                            $whereParam .
-                            ', \'%\')'
-                        );
+                    if ($where['condition'] === 'IN') {
+                        $whereParams = [];
+                        foreach ($where['value'] as $value) {
+                            $_whereParam = ('where_' . $this->whereBaseIndex . $whereIndex . '_' . $where['key']);
+                            $whereParams[] = $_whereParam;
+                            $data[$_whereParam] = $value;
+                            $whereIndex++;
+                        }
+
+                        $whereParam = ('(:' . implode(', :', $whereParams) . ')');
+                        $query .= ('`' . $this->table . '`.`' . $where['key'] . '` ' . $where['condition'] . ' ' . $whereParam . ' ');
+                    } else {
+                        if ($where['condition'] === 'LIKE') {
+                            $whereParam = (
+                                'CONCAT(\'%\', ' .
+                                $whereParam .
+                                ', \'%\')'
+                            );
+                        }
+
+                        $query .= ('`' . $this->table . '`.`' . $where['key'] . '` ' . $where['condition'] . ' ' . $whereParam . ' ');
+                        $data['where_' . $this->whereBaseIndex . $whereIndex . '_' . $where['key']] = $where['value'];
+                        $whereIndex++;
                     }
 
-                    $query .= ('`' . $this->table . '`.`' . $where['key'] . '` ' . $where['condition'] . ' ' . $whereParam . ' ');
-                    $data['where_' . $this->whereBaseIndex . $whereIndex . '_' . $where['key']] = $where['value'];
-                    $whereIndex++;
                 }
                 elseif ($where['type'] === 'raw') {
                     if ($where['condition'] !== '') {
@@ -382,11 +442,13 @@ class MySql extends DefaultEx
     public function limit(int $limit)
     {
         $this->limit = $limit;
+        return $this;
     }
 
     public function offset(int $offset)
     {
         $this->offset = $offset;
+        return $this;
     }
 
     public function paginate(int $limit, int $page)
@@ -397,6 +459,7 @@ class MySql extends DefaultEx
             $offset = ($page * $limit) - $limit;
             $this->offset($offset);
         }
+        return $this;
     }
 
     public function get(): Arr

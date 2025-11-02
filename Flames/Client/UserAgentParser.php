@@ -11,7 +11,25 @@ class UserAgentParser
     const BROWSER         = 'browser';
     const BROWSER_VERSION = 'version';
 
-    protected function parseUserAgent( $u_agent = null ) {
+    public static function getRaw(): ?string
+    {
+        $userAgent = (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null);
+        if ($userAgent === '') {
+            $userAgent = null;
+        }
+
+        if (Kernel::MODULE !== 'SERVER') {
+            $userAgent = Js::getWindow()->navigator->userAgent;
+            if ($userAgent === '') {
+                $userAgent = null;
+            }
+        }
+
+        return $userAgent;
+    }
+
+    protected function parseUserAgent($u_agent = null)
+    {
         if( $u_agent === null && isset($_SERVER['HTTP_USER_AGENT']) ) {
             $u_agent = (string)$_SERVER['HTTP_USER_AGENT'];
         }
@@ -209,7 +227,7 @@ REGEX
         return self::$cache[$u_agent];
     }
 
-    public function __invoke( $u_agent = null )
+    public function __invoke($u_agent = null)
     {
         return $this->parse($u_agent);
     }

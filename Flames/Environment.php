@@ -193,6 +193,9 @@ final class Environment
         $data = str_replace(["\r\n", "\r"], "\n", file_get_contents($this->path));
         $mount = '';
 
+        $keys = $this->data->getKeys()->toArray();
+        $retriteKeys = [];
+
         $lines = explode("\n", $data);
         foreach ($lines as $line) {
             if (str_starts_with($line, "\n") || str_starts_with($line, '#') || str_contains($line, '=') === false) {
@@ -201,6 +204,14 @@ final class Environment
             }
 
             $var = trim(explode('=', $line)[0]);
+
+            foreach ($keys as $key) {
+                if ($key === $var) {
+                    $retriteKeys[] = $key;
+                    break;
+                }
+            }
+
             $value = $this->{$var};
             if ($value === true) {
                 $value = 'true';
@@ -212,6 +223,22 @@ final class Environment
                 $value = ('"' . $value . '"');
             }
             $mount .= ($var . '=' . $value . "\n");
+        }
+
+        $missingKeys = array_diff($keys, $retriteKeys);
+        foreach ($missingKeys as $key) {
+            $value = $this->{$key};
+            if ($value === true) {
+                $value = 'true';
+            } elseif ($value === false) {
+                $value = 'false';
+            }
+
+            if (str_contains($value, ' ')) {
+                $value = ('"' . $value . '"');
+            }
+
+            $mount .= ($key . '=' . $value . "\n");
         }
 
         @file_put_contents($this->path, $mount);
@@ -238,6 +265,7 @@ final class Environment
         $cachePath = ($basePath . sha1($this->path));
 
         if (file_exists($this->path) === false) {
+
             $this->valid = false;
             $this->data = Arr();
             return;

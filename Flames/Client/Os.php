@@ -2,6 +2,9 @@
 
 namespace Flames\Client;
 
+use Flames\Js;
+use Flames\Kernel;
+
 class Os
 {
     const WINDOWS = 'Windows';
@@ -13,7 +16,9 @@ class Os
     const PLAYSTATION = 'Playstation';
     const XBOX = 'Xbox';
 
-    public static function getName()
+    protected static object|null $nativeInfo = null;
+
+    public static function getName(): string
     {
         $platform = Platform::getName();
 
@@ -82,5 +87,46 @@ class Os
         }
 
         return $platform;
+    }
+
+    public static function getVersion(): ?string
+    {
+        if (self::isNativeBuild() !== true) {
+            return null;
+        }
+
+        $nativeInfo = self::getNativeInfo();
+        return $nativeInfo->version;
+    }
+
+    public static function getReleaseVersion(): ?string
+    {
+        if (self::isNativeBuild() !== true) {
+            return null;
+        }
+
+        $nativeInfo = self::getNativeInfo();
+        return $nativeInfo->release;
+    }
+
+    protected static function isNativeBuild(): bool
+    { return Kernel::isNativeBuild(); }
+
+    protected static function getNativeInfo(): object|null
+    {
+        if (self::$nativeInfo !== null) {
+            return self::$nativeInfo;
+        }
+
+        $window = Js::getWindow();
+        $nativeInfo = (string)$window->Flames->__nativeInfo__;
+
+        $nativeInfo = json_decode(base64_decode($nativeInfo));
+        if ($nativeInfo === false) {
+            return null;
+        }
+
+        self::$nativeInfo = $nativeInfo;
+        return self::$nativeInfo;
     }
 }

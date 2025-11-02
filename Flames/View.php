@@ -2,7 +2,10 @@
 
 namespace Flames;
 
+use Flames\Cli\Command\Build\Assets\Automate;
+use Flames\Client\Builder;
 use Flames\Collection\Arr;
+use Flames\Collection\Strings;
 use http\Env;
 
 /**
@@ -49,11 +52,11 @@ class View
      */
     protected function renderHtml(Arr|array $data = null)
     {
-        $loader = new TemplateEngine\Loader\ArrayLoader([
+        $loader = new Template\Loader\ArrayLoader([
             'index' => $this->html,
         ]);
-        $twig = new TemplateEngine\Environment($loader);
-        return $this->postRender($twig->render('index', $data), $data);
+        $twig = new Template\Environment($loader);
+        $htmlRendered = $this->postRender($twig->render('index', $data), $data);
     }
 
     /**
@@ -64,8 +67,8 @@ class View
      */
     protected function renderFile(Arr|array $data = null)
     {
-        $loader = new TemplateEngine\Loader\FilesystemLoader(APP_PATH . 'Client/View/');
-        $twig = new TemplateEngine\Environment($loader, [
+        $loader = new Template\Loader\FilesystemLoader(APP_PATH . 'Client/View/');
+        $twig = new Template\Environment($loader, [
 //            'cache' => (ROOT_PATH . '.cache/view-twig'),
         ]);
 
@@ -133,11 +136,22 @@ class View
             sha1(Environment::get('APP_KEY') . $hash) . '|' .
             serialize($data)
         );
-        $flamesEngine = '<script async src="//cdn.jsdelivr.net/gh/flamesphp/cdn@' . Kernel::CDN_VERSION . '/flames.js"></script>';
-        $html = str_replace($bodyCloseTag, "\t" . $flamesEngine . "\n\t" . $bodyCloseTag, $html);
         $html = str_replace($bodyCloseTag, "\t<flames hidden>" .
             $token .
             "</flames>\n\t" . $bodyCloseTag, $html);
+        if (Environment::get('AUTO_BUILD_CLIENT') === true) {
+            $automate = new Automate();
+            $html = str_replace($bodyCloseTag, "\t<flames-autobuild>" . $automate->getCurrentHash() . "</flames-autobuild>\n\t" . $bodyCloseTag, $html);
+        }
+        $flamesEngine = '<script async src="//cdn.jsdelivr.net/gh/flamesphp/cdn@' . Kernel::CDN_VERSION . '/flames.js"></script>';
+        $html = str_replace($bodyCloseTag, "\t" . $flamesEngine . "\n\t" . $bodyCloseTag, $html);
+
+
+        $sanizateOutput = Environment::get('CLIENT_SANIZATE_OUTPUT');
+        if ($sanizateOutput === true) {
+            $html = Html::sanitize($html);
+        }
+
         return $html;
     }
 }

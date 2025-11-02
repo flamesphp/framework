@@ -4,6 +4,9 @@
 namespace Flames\Client;
 
 use Flames\Client\UserAgentParser;
+use Flames\Collection\Strings;
+use Flames\Js;
+use Flames\Kernel;
 
 /**
  * The Plaform class provides methods for determining the operating system platform.
@@ -43,6 +46,8 @@ class Platform
     const XBOX = 'Xbox';
     const XBOX_ONE = 'Xbox One';
 
+    protected static object|null $nativeInfo = null;
+
     /**
      * Returns the name of the platform.
      *
@@ -54,7 +59,7 @@ class Platform
         return $userAgentParser['platform'];
     }
 
-    public static function isWindows()
+    public static function isWindows(): bool
     {
         $name = self::getName();
 
@@ -66,12 +71,12 @@ class Platform
         );
     }
 
-    public static function isLinux()
+    public static function isLinux(): bool
     {
         return (self::getName() === self::LINUX);
     }
 
-    public static function isUnix()
+    public static function isUnix(): bool
     {
         $name = self::getName();
 
@@ -95,7 +100,7 @@ class Platform
         );
     }
 
-    public static function isIos()
+    public static function isIos(): bool
     {
         $name = self::getName();
 
@@ -107,17 +112,17 @@ class Platform
         );
     }
 
-    public static function isDarwin()
+    public static function isDarwin(): bool
     {
         return (self::getName() === self::MACINTOSH);
     }
 
-    public static function isMacintosh()
+    public static function isMacintosh(): bool
     {
         return self::isDarwin();
     }
 
-    public static function isAndroid()
+    public static function isAndroid(): bool
     {
         $name = self::getName();
 
@@ -129,7 +134,7 @@ class Platform
         );
     }
 
-    public static function isBsd()
+    public static function isBsd(): bool
     {
         $name = self::getName();
 
@@ -140,7 +145,7 @@ class Platform
         );
     }
 
-    public static function isMobile()
+    public static function isMobile(): bool
     {
         $name = self::getName();
 
@@ -161,7 +166,7 @@ class Platform
         );
     }
 
-    public static function isConsole()
+    public static function isConsole(): bool
     {
         $name = self::getName();
 
@@ -181,7 +186,7 @@ class Platform
         );
     }
 
-    public static function isPlaystation()
+    public static function isPlaystation(): bool
     {
         $name = self::getName();
 
@@ -193,7 +198,7 @@ class Platform
         );
     }
 
-    public static function isXbox()
+    public static function isXbox(): bool
     {
         $name = self::getName();
 
@@ -205,7 +210,7 @@ class Platform
         );
     }
 
-    public static function isNintendo()
+    public static function isNintendo(): bool
     {
         $name = self::getName();
 
@@ -217,6 +222,47 @@ class Platform
             $name === self::NINTENDO_WII ||
             $name === self::NINTENDO_WIIU
         );
+    }
+
+    public static function getArch(): ?string
+    {
+        if (self::isNativeBuild() !== true) {
+            return null;
+        }
+
+        $nativeInfo = self::getNativeInfo();
+        return Strings::toLower($nativeInfo->arch);
+    }
+
+    public static function getVersion(): ?string
+    {
+        if (self::isNativeBuild() !== true) {
+            return null;
+        }
+
+        $nativeInfo = self::getNativeInfo();
+        return $nativeInfo->version;
+    }
+
+    protected static function isNativeBuild(): bool
+    { return Kernel::isNativeBuild(); }
+
+    protected static function getNativeInfo(): object|null
+    {
+        if (self::$nativeInfo !== null) {
+            return self::$nativeInfo;
+        }
+
+        $window = Js::getWindow();
+        $nativeInfo = (string)$window->Flames->__nativeInfo__;
+
+        $nativeInfo = json_decode(base64_decode($nativeInfo));
+        if ($nativeInfo === false) {
+            return null;
+        }
+
+        self::$nativeInfo = $nativeInfo;
+        return self::$nativeInfo;
     }
 }
 

@@ -13,6 +13,8 @@ namespace Flames\Kernel\Client
 
         private static $tags = [];
 
+        private static $views = [];
+
         public static function load(string $class): bool
         {
             try {
@@ -39,6 +41,11 @@ namespace Flames\Kernel\Client
             }
 
             return null;
+        }
+
+        public static function getViews()
+        {
+            return self::$views;
         }
     }
 }

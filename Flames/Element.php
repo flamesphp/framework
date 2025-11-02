@@ -15,6 +15,7 @@ use Flames\Element\Shadow;
  * @property string|null $html
  * @property string|null $value
  * @property string|null $checked
+ * @property bool|null $visible
  * @property Element|null $parent
  * @property Element\Event|null $event
  */
@@ -79,6 +80,9 @@ class Element
         }
         elseif ($key === 'element') {
             return $this->element;
+        }
+        elseif ($key === 'visible') {
+            return $this->isVisible();
         }
         elseif ($key === 'shadow') {
             return $this->getShadow();
@@ -432,6 +436,15 @@ class Element
         $this->element->innerHTML = $html;
     }
 
+    public function appendHtml(string $html): void
+    {
+        if ($this->element === null) {
+            return;
+        }
+
+        $this->element->insertAdjacentHTML('beforeend', $html);
+    }
+
     public function getValue(): null|string|bool
     {
         if ($this->element === null) {
@@ -439,7 +452,7 @@ class Element
         }
 
         $tag = $this->tag;
-        if ($tag === 'textarea') {
+        if ($tag === 'textarea' || $tag === 'select') {
             return $this->element->value;
         }
         elseif ($tag === 'input') {
@@ -507,6 +520,44 @@ class Element
         $_element = new Element();
         $_element->setElementNative($element);
         return $_element;
+    }
+
+    protected function isVisible(): bool
+    {
+        if ($this->element === null) {
+            return false;
+        }
+
+        $tolerance = 0.5;
+        $rect = $this->element->getBoundingClientRect();
+
+        $window = Js::getWindow();
+        $windowHeight = 0;
+        $windowWidth = 0;
+
+        if ($window->innerHeight !== null && $window->innerHeight > 0) {
+            $windowHeight = $window->innerHeight;
+        } elseif ($window->document->documentElement->clientHeight !== null && $window->document->documentElement->clientHeight !== null > 0) {
+            $windowHeight = $window->document->documentElement->clientHeight;
+        }
+
+        if ($window->innerWidth !== null && $window->innerWidth > 0) {
+            $windowWidth = $window->innerWidth;
+        } elseif ($window->document->documentElement->clientWidth !== null && $window->document->documentElement->clientWidth !== null > 0) {
+            $windowWidth = $window->document->documentElement->clientWidth;
+        }
+
+        $inViewVertically = ($rect->top <= ($windowHeight + $tolerance) && $rect->bottom >= -$tolerance);
+        $inViewHorizontally = ($rect->left <= ($windowWidth + $tolerance) && $rect->right >= -$tolerance);
+        $inViewport = ($inViewVertically && $inViewHorizontally);
+
+        $style = $window->getComputedStyle($this->element);
+
+        $notHiddenByCSS = $style->display !== 'none' && $style->visibility !== 'hidden' && (float)$style->opacity > 0;
+        $notHiddenAttribute = !$this->element->hidden;
+        $hasDimensions = ($this->element->offsetWidth > 0 || $this->element->offsetHeight > 0 || $this->element->getClientRects()->length > 0);
+
+        return $inViewport && $notHiddenByCSS && $notHiddenAttribute && $hasDimensions;
     }
 
     public function getShadow(): Shadow|null
@@ -590,5 +641,10 @@ class Element
     {
         $window = Js::getWindow();
         return Element::query('[' . $window->Flames->Internal->char . 'uid="' . $uid . '"]');
+    }
+
+    public static function getBody()
+    {
+        return self::fromNative(Js::getWindow()->document->body);
     }
 }

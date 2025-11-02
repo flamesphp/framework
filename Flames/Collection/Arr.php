@@ -391,4 +391,9 @@ final class Arr extends \ArrayObject
 
         return Arr($newArray);
     }
+
+    public function clone()
+    {
+        return clone $this;
+    }
 }

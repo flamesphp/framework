@@ -7,6 +7,7 @@ use Flames\Collection\Arr;
 use Flames\Js;
 use Flames\Http\Async\Request;
 use Flames\Http\Async\Response;
+use Flames\Kernel\Client\Error;
 
 /**
  * @internal
@@ -65,7 +66,12 @@ class Client
                 }
 
                 $response = new Response($code, $body, $headers);
-                $delegate($response);
+                try {
+                    $delegate($response);
+                } catch (\Exception|\Error $e) {
+                    Error::handler($e);
+                    return;
+                }
             }
         };
         $xmlHttpRequest->open($method, $uri);

@@ -1,6 +1,7 @@
 <?php
 
 namespace Flames\Router;
+use Flames\Cli\Command\Build\Assets\Automate;
 use Flames\Command;
 use Flames\Environment;
 
@@ -17,8 +18,8 @@ class Client
         if ($uri === 'js') {
             return self::dispatchFlames();
         }
-        elseif ($uri === 'auto/style') {
-            return self::dispatchFlamesAutoStyle();
+        elseif ($uri === 'auto/build') {
+            return self::dispatchFlamesAutoBuild();
         }
 
         return false;
@@ -45,13 +46,42 @@ class Client
         return true;
     }
 
-    protected static function dispatchFlamesAutoStyle(): bool
+    protected static function dispatchFlamesAutoBuild(): bool
     {
-        if (Environment::get('CLIENT_AUTO_BUILD') !== true) {
+        if (Environment::get('AUTO_BUILD_CLIENT') !== true) {
             return false;
         }
 
-        Command::run('build:assets --auto');
-        return true;
+        $timeLimit = 55;
+        $maxExecutionTime = 55;
+        try { $maxExecutionTime = (int)@ini_get('max_execution_time'); } catch (\Error|\Exception $e) {}
+        if ($maxExecutionTime > 0 && $timeLimit > $maxExecutionTime) {  $timeLimit = ($maxExecutionTime - 5); }
+        if ($timeLimit <= 0) { $timeLimit = 5; }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $checkHash = @$data['hash'];
+
+        $diffTime = 0;
+        $currentTime = microtime(true);
+        while ($diffTime < 55) {
+            $automate = new Automate();
+            $currentHash = $automate->getCurrentHash();
+
+            if ($checkHash !== $currentHash) {
+                try {
+                    Command::run('build:assets --auto');
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['changed' => true]);
+                    exit;
+                } catch (\Error|\Exception $e) {}
+            }
+            usleep(250000);
+
+            $diffTime = (microtime(true) - $currentTime);
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['changed' => false]);
+        exit;
     }
 }

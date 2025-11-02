@@ -2,15 +2,20 @@
 
 namespace Flames\Kernel\Client;
 
+use Flames\Client\Browser\DevTools;
 use Flames\Connection;
 use Flames\Coroutine;
 use Flames\Element;
+use Flames\Environment;
 use Flames\Event\Element\Click;
 use Flames\Event\Element\Change;
 use Flames\Event\Element\Input;
 use Flames\Header;
 use Flames\Js;
+use Flames\Kernel;
+use Flames\Kernel\Client\Dispatch\Native;
 use Flames\Kernel\Client\Error;
+use Flames\Kernel\Client\Service\Keyboard;
 use Flames\Kernel\Route;
 use Flames\Router;
 
@@ -50,9 +55,13 @@ final class Dispatch
 
     protected static function setup($firstLoad = false) : void
     {
+        self::dispatchDevTools();
         self::simulateGlobals();
+        self::setDate();
+        self::dispatchNativeBuildHooks();
         self::dispatchHooks();
         self::dispatchEvents($firstLoad);
+        self::dispatchNativeServices();
     }
 
     protected static function simulateGlobals() : void
@@ -60,6 +69,17 @@ final class Dispatch
         $location = Js::getWindow()->location;
         $origin = $location->origin;
         $_SERVER['REQUEST_URI'] = explode('#', substr($location->href, strlen($origin)))[0];
+    }
+
+    protected static function setDate(): void
+    {
+        $timezone = Js::getWindow()->Flames->Internal->dateTimeZone;
+
+        if ($timezone !== null && $timezone !== '') {
+            \date_default_timezone_set($timezone);
+            return;
+        }
+        \date_default_timezone_set('UTC');
     }
 
     protected static function dispatchHooks()
@@ -74,8 +94,12 @@ final class Dispatch
                         $element->removeAttribute('@click');
                         $element->setAttribute($window->Flames->Internal->char . 'click', $clickUid);
                         $element->event->click(function($event) use ($eventTrigger) {
-                            $instance = self::getInstance($eventTrigger->class);
-                            $instance->{$eventTrigger->name}($event);
+                            try {
+                                $instance = self::getInstance($eventTrigger->class);
+                                $instance->{$eventTrigger->name}($event);
+                            } catch (\Exception|\Error $e) {
+                                Error::handler($e);
+                            }
                         });
                         break;
                     }
@@ -89,8 +113,12 @@ final class Dispatch
                         $element->removeAttribute('@change');
                         $element->setAttribute($window->Flames->Internal->char . 'change', $changeUid);
                         $element->event->change(function($event) use ($eventTrigger) {
-                            $instance = self::getInstance($eventTrigger->class);
-                            $instance->{$eventTrigger->name}($event);
+                            try {
+                                $instance = self::getInstance($eventTrigger->class);
+                                $instance->{$eventTrigger->name}($event);
+                            } catch (\Exception|\Error $e) {
+                                Error::handler($e);
+                            }
                         });
                         break;
                     }
@@ -104,8 +132,12 @@ final class Dispatch
                         $element->removeAttribute('@input');
                         $element->setAttribute($window->Flames->Internal->char . 'input', $inputUid);
                         $element->event->input(function($event) use ($eventTrigger) {
-                            $instance = self::getInstance($eventTrigger->class);
-                            $instance->{$eventTrigger->name}($event);
+                            try {
+                                $instance = self::getInstance($eventTrigger->class);
+                                $instance->{$eventTrigger->name}($event);
+                            } catch (\Exception|\Error $e) {
+                                Error::handler($e);
+                            }
                         });
                         break;
                     }
@@ -137,29 +169,38 @@ final class Dispatch
 
         \Flames\Kernel::__injector();
 
-        if (class_exists('\\App\\Client\\Event\\Ready') === true) {
-            $ready = new \App\Client\Event\Ready();
-            $ready->onReady();
-        }
+        try {
+            self::dispatchNativeBuild();
 
-        if (class_exists('\\App\\Client\\Event\\Route') === true) {
-            $route = new \App\Client\Event\Route();
-            $router = $route->onRoute(new Router());
-
-            if ($router !== null) {
-                $match = $router->getMatch();
-                if ($match === null) {
-                    self::$currentLoadId++;
-                    return false;
-                }
-
-                $dispatchRoute = self::dispatchRoute($match, $route);
-                self::$currentLoadId++;
-                return $dispatchRoute;
+            if (class_exists('\\App\\Client\\Event\\Ready') === true) {
+                $ready = new \App\Client\Event\Ready();
+                $ready->onReady();
             }
+
+            if (class_exists('\\App\\Client\\Event\\Route') === true) {
+                $route = new \App\Client\Event\Route();
+                $router = $route->onRoute(new Router());
+
+                if ($router !== null) {
+                    $match = $router->getMatch();
+                    if ($match === null) {
+                        self::$currentLoadId++;
+                        return false;
+                    }
+
+                    $dispatchRoute = self::dispatchRoute($match, $route);
+                    self::$currentLoadId++;
+                    return $dispatchRoute;
+                }
+            }
+
+            self::$currentLoadId++;
+            return false;
+        }
+        catch (\Exception|\Error $e) {
+            Error::handler($e);
         }
 
-        self::$currentLoadId++;
         return false;
     }
 
@@ -219,5 +260,49 @@ final class Dispatch
     public static function injectUri(string $uri)
     {
         self::$currentUri = $uri;
+    }
+
+    protected static function dispatchNativeBuild()
+    {
+        $window = Js::getWindow();
+        $window->Flames->__nativeInfoDelegate__ = function() {
+            self::dispatchNativeBuildEvents();
+        };
+
+        $nativeInfo = (string)$window->Flames->__nativeInfo__;
+        if (empty($nativeInfo)) {
+            return;
+        }
+
+        self::dispatchNativeBuildEvents();
+    }
+
+    protected static function dispatchNativeBuildEvents()
+    {
+        Kernel::__setNativeBuild(true);
+
+        if (class_exists('\\App\\Client\\Event\\Native') === true) {
+            $ready = new \App\Client\Event\Native();
+            $ready->onNative();
+        }
+    }
+
+    protected static function dispatchNativeServices()
+    { Keyboard::register(); }
+
+    protected static function dispatchNativeBuildHooks()
+    { Native::register(); }
+
+    protected static function dispatchDevTools()
+    {
+        $window = Js::getWindow();
+        if ($window->localStorage === null) {
+            return;
+        }
+
+        $devToolsOpen = (int)$window->localStorage->getItem('flames-internal-devtools-open');
+        if ($devToolsOpen === 1) {
+            DevTools::open();
+        }
     }
 }

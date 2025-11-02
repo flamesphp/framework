@@ -2,7 +2,10 @@
 
 namespace Flames\Js;
 
+use Flames\Element;
+use Flames\Event\Element\Change;
 use Flames\Js;
+use Flames\Kernel\Client\Error;
 
 class Module
 {
@@ -28,7 +31,12 @@ class Module
         $module = $window->Flames->Internal->getModuleByHash($this->hash);
         if ($module !== null) {
             $delegate = $this->delegate;
-            $delegate($module);
+            try {
+                $delegate($module);
+            } catch (\Exception|\Error $e) {
+                Error::handler($e);
+                return;
+            }
             return;
         }
 

@@ -1,0 +1,48 @@
+<?php
+
+/*
+ * This file is part of Template.
+ *
+ * (c) Fabien Potencier
+ * (c) Armin Ronacher
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Flames\Template\TokenParser;
+
+use Flames\Template\Node\IncludeNode;
+use Flames\Template\Node\Node;
+use Flames\Template\Token;
+
+/**
+ * Export a template to client-side
+ *
+ * @internal
+ */
+class ExportTokenParser extends AbstractTokenParser
+{
+    public function parse(Token $token): Node
+    {
+        $expr = $this->parser->getExpressionParser()->parseExpression();
+
+        [$variables, $only, $ignoreMissing] = $this->parseArguments();
+
+        return new IncludeNode($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
+    }
+
+    protected function parseArguments()
+    {
+        $stream = $this->parser->getStream();
+
+        $stream->expect(/* Token::BLOCK_END_TYPE */ 3);
+
+        return [null, false, true];
+    }
+
+    public function getTag(): string
+    {
+        return 'export';
+    }
+}

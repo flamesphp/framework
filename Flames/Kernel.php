@@ -16,9 +16,9 @@ use Flames\Router\Client;
  */
 final class Kernel
 {
-    public const VERSION = 'v0.0.19-alpha';
+    public const VERSION = 'v0.0.41-alpha';
     public const MODULE  = 'SERVER';
-    public const CDN_VERSION = 'v0.0.19-alpha';
+    public const CDN_VERSION = 'v0.0.41-alpha';
 
     protected static Router|null $defaultRouter = null;
     protected static ErrorHandler\Run|null $errorHandler = null;
@@ -80,7 +80,7 @@ final class Kernel
         try {
             mb_internal_encoding('UTF-8');
         } catch (\Error $e) {
-            Required::file(FLAMES_PATH . 'Kernel/Missing/Mbstring.php');
+            Required::file(FLAMES_PATH . 'Kernel/Missing/mbstring.php');
             return false;
         }
 
@@ -179,6 +179,7 @@ final class Kernel
         $timezone = Environment::get('DATE_TIMEZONE');
         if ($timezone !== null && $timezone !== '') {
             \date_default_timezone_set($timezone);
+            return;
         }
         \date_default_timezone_set('UTC');
     }
@@ -358,7 +359,8 @@ final class Kernel
     {
         $path = (realpath(__DIR__ . '/../') . '/');
         define('FLAMES_PATH', $path . 'Flames/');
-        if (str_ends_with($path, 'vendor/flamesphp/flames/') === true) {
+
+        if (str_ends_with(str_replace('\\', '/', $path), 'vendor/flamesphp/flames/') === true) {
             define('FLAMES_COMPOSER', true);
             return (realpath($path . '../../../') . '/');
         } else {

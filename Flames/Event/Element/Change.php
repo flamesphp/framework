@@ -6,6 +6,7 @@ use Flames\Element;
 
 /**
  * Description for the class
+ *
  * @property Element|null $target
  * @property string|bool|null $value
  * @property bool $checked
