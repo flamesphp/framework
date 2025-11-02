@@ -1,9 +1,0 @@
-{
-  "$schema": "https://json.schemastore.org/package.json",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "echo 'pkg test 1'",
-    "dev": "echo 'pkg test 2'"
-  }
-}

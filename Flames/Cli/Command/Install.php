@@ -18,7 +18,9 @@ final class Install
 
     protected bool $withKeyGenerate = true;
     protected bool $withCryptoKeyGenerate = true;
-    protected bool $withExample = true;
+    protected bool $withDocker = true;
+    protected bool $withApache = true;
+    protected bool $withGit = true;
 
     /**
      * Constructor for the class.
@@ -30,7 +32,9 @@ final class Install
     {
         $this->withKeyGenerate = (!$data->option->contains('nokey'));
         $this->withCryptoKeyGenerate = (!$data->option->contains('nocryptokey'));
-        $this->withExample = (!$data->option->contains('noexample'));
+        $this->withDocker = (!$data->option->contains('nodocker'));
+        $this->withApache = (!$data->option->contains('noapache'));
+        $this->withGit = (!$data->option->contains('nogit'));
     }
 
     /**
@@ -45,8 +49,21 @@ final class Install
         $default = Environment::default();
         if ($default->isValid() === false) {
             $envPath = (ROOT_PATH . '.env');
-            $envDistPath = ($envPath . '.dist');
+            $envDistPath = (FLAMES_PATH . '../.env.dist');
             copy($envDistPath, $envPath);
+        }
+
+        $binPath = (ROOT_PATH . 'bin');
+        if (file_exists($binPath) === false) {
+            $binDistPath = (FLAMES_PATH . 'Kernel/Raw/bin');
+            copy($binDistPath, $binPath);
+        }
+
+        $appPath = (ROOT_PATH . 'App');
+        if (is_dir($appPath) === false) {
+            $mask = umask(0);
+            mkdir(ROOT_PATH . 'App', 0777, true);
+            umask($mask);
         }
 
         if ($this->withKeyGenerate === true) {
@@ -55,11 +72,84 @@ final class Install
         if ($this->withCryptoKeyGenerate === true) {
             Command::run('crypto:key:generate');
         }
-        if ($this->withExample === true) {
-            // TODO: make example project
-//            Command::run('install:example');
+
+        if ($this->withApache === true) {
+            $htaccessPath = (ROOT_PATH . '.htaccess');
+            if (file_exists($htaccessPath) === false) {
+                $htaccessDistPath = (FLAMES_PATH . 'Kernel/Raw/.htaccess');
+                copy($htaccessDistPath, $htaccessPath);
+            }
         }
 
+        if ($this->withDocker === true) {
+            $dockerComposePath = (ROOT_PATH . 'docker-compose.yml');
+            if (file_exists($dockerComposePath) === false) {
+                $dockerComposeDistPath = (FLAMES_PATH . '../docker-compose.yml');
+                copy($dockerComposeDistPath, $dockerComposePath);
+            }
+
+            $dockerDataPath = (ROOT_PATH . '.docker');
+            if (is_dir($dockerDataPath) === false) {
+                $this->recurseCopy(FLAMES_PATH . '../.docker', $dockerDataPath);
+            }
+        }
+
+        if ($this->withGit === true) {
+            $gitIgnorePath = (ROOT_PATH . '.gitignore');
+            if (file_exists($gitIgnorePath) === false) {
+                $gitIgnoreDistPath = (FLAMES_PATH . 'Kernel/Raw/.gitignore');
+                copy($gitIgnoreDistPath, $gitIgnorePath);
+            }
+        }
+
+
+
         return true;
+    }
+
+    private function recurseCopy(string $sourceDirectory, string $destinationDirectory, string $childFolder = ''): void
+    {
+        $directory = opendir($sourceDirectory);
+
+        if (is_dir($destinationDirectory) === false) {
+            mkdir($destinationDirectory);
+        }
+
+        if ($childFolder !== '') {
+            if (is_dir("$destinationDirectory/$childFolder") === false) {
+                mkdir("$destinationDirectory/$childFolder");
+            }
+
+            while (($file = readdir($directory)) !== false) {
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
+
+                if (is_dir("$sourceDirectory/$file") === true) {
+                    $this->recurseCopy("$sourceDirectory/$file", "$destinationDirectory/$childFolder/$file");
+                } else {
+                    copy("$sourceDirectory/$file", "$destinationDirectory/$childFolder/$file");
+                }
+            }
+
+            closedir($directory);
+
+            return;
+        }
+
+        while (($file = readdir($directory)) !== false) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+
+            if (is_dir("$sourceDirectory/$file") === true) {
+                $this->recurseCopy("$sourceDirectory/$file", "$destinationDirectory/$file");
+            }
+            else {
+                copy("$sourceDirectory/$file", "$destinationDirectory/$file");
+            }
+        }
+
+        closedir($directory);
     }
 }

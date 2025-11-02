@@ -1,0 +1,33 @@
+# Remove server signature
+ServerSignature Off
+
+# Default charset UTF-8
+AddDefaultCharset UTF-8
+
+# Flames security and redirects
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+    RewriteRule ^docker-compose.yml(.*)$ /$1 [NC,L]
+    RewriteRule ^.env(.*)$ /$1 [NC,L]
+    RewriteRule ^.env.dist(.*)$ /$1 [NC,L]
+    RewriteRule ^.gitignore(.*)$ /$1 [NC,L]
+    RewriteRule ^.gitmodules(.*)$ /$1 [NC,L]
+    RewriteRule ^license(.*)$ /$1 [NC,L]
+    RewriteRule ^README.md(.*)$ /$1 [NC,L]
+    RewriteRule ^.htaccess(.*)$ /$1 [NC,L]
+    RewriteRule ^bin(.*)$ /$1 [NC,L]
+    RewriteRule ^.docker/(.*)$ /$1 [NC,L]
+    RewriteRule ^.cache/(.*)$ /$1 [NC,L]
+    RewriteRule ^.vendor/(.*)$ /$1 [NC,L]
+    RewriteRule ^App/(.*)$ /$1 [NC,L]
+    RewriteRule ^Service/(.*)$ /$1 [NC,L]
+
+    RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2
+    RewriteCond %{DOCUMENT_ROOT}%1App/Client/Public/%2 -f
+    RewriteRule ^(.*)$ App/Client/Public/$1 [END]
+    RewriteRule . index.php [END,QSA]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 'Flames can\'t run in Apache without mod rewrite activated.'
+</IfModule>
