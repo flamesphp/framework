@@ -40,7 +40,13 @@ final class AutoLoad
      * Handles the auto-loading of classes.
      *
      * This method is responsible for loading classes automatically based on their namespace.
-     * It follows different loading mechanisms for classes in the "Flames" namespace and the "App" namespace.
+     * It follows different loading mechanisms for classes in the "Flames", "App" and "Microservice" namespaces.
+     *
+     * Namespace → path mapping:
+     *   Flames\*                     → FLAMES_PATH/{rest}.php
+     *   App\*                        → APP_PATH/{rest}.php
+     *   Microservice\Test\Server\*   → ROOT_PATH/Microservice/Test/Server/{rest}.php
+     *   Microservice\Test\Client\*   → ROOT_PATH/Microservice/Test/Client/{rest}.php
      *
      * @param string $name The name of the class being loaded.
      * @return void
@@ -54,13 +60,34 @@ final class AutoLoad
             require $path;
         }
 
-        // Case App
+        // Case App (standard App\Server\* and App\Client\*)
         elseif (str_starts_with($name, 'App\\')) {
-            $path = (APP_PATH .  substr(str_replace('\\', '/', $name), 4) . '.php');
+            $path = (APP_PATH . substr(str_replace('\\', '/', $name), 4) . '.php');
             require $path;
 
             if (method_exists($name, '__constructStatic') === true) {
-                if (str_starts_with($name, 'App\Client') === false) {
+                // Only skip __constructStatic for App\Client\* (parts[1] === 'Client').
+                // Server-side classes that happen to contain 'Client' elsewhere in their
+                // namespace (e.g. App\Server\Model\Client) must still be initialised.
+                $parts = explode('\\', $name);
+                if (($parts[1] ?? null) !== 'Client') {
+                    ($name . '::__constructStatic')();
+                }
+            }
+        }
+
+        // Case Microservice (Microservice\{Name}\Server\* and Microservice\{Name}\Client\*)
+        // The namespace maps directly to ROOT_PATH:
+        //   Microservice\Test\Server\Controller\Index
+        //   → ROOT_PATH . 'Microservice/Test/Server/Controller/Index.php'
+        elseif (str_starts_with($name, 'Microservice\\')) {
+            $path = (ROOT_PATH . str_replace('\\', '/', $name) . '.php');
+            require $path;
+
+            if (method_exists($name, '__constructStatic') === true) {
+                // Skip __constructStatic for Microservice\{Name}\Client\* (parts[2] === 'Client').
+                $parts = explode('\\', $name);
+                if (($parts[2] ?? null) !== 'Client') {
                     ($name . '::__constructStatic')();
                 }
             }

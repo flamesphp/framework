@@ -30,7 +30,10 @@ class Client
         header('Cache-Control: max-age=31536000');
         header('Content-Type: application/javascript; charset=utf-8');
 
-        $clientPath = (APP_PATH . 'Client/Resource/Build/Flames.js');
+        $clientPath = (\Flames\Microservice::getPath() . 'Client/Resource/Build/Flames.js');
+        if (file_exists($clientPath) === false) {
+            $clientPath = (APP_PATH . 'Client/Resource/Build/Flames.js');
+        }
         if (file_exists($clientPath) === true) {
             $fileStream = fopen($clientPath, 'r');
             while(!feof($fileStream)) {

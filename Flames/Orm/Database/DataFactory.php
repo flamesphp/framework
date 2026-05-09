@@ -44,4 +44,14 @@ class DataFactory
         self::$databases[$database] = $data;
         return self::$databases[$database];
     }
+
+    /**
+     * Removes the cached config for the given database key so that the next
+     * call to getConfigByDatabase() re-reads the environment variables.
+     * Useful after changing DATABASE_*_NAME at runtime via Environment::set().
+     */
+    public static function invalidate(string $database): void
+    {
+        unset(self::$databases[$database]);
+    }
 }

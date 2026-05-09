@@ -87,6 +87,7 @@ final class Kernel
         Required::file(FLAMES_PATH . 'Kernel/Wrapper/Raw.php');
 
         self::setEnvironment();
+        Microservice::resolve();
         self::loadPolyfill();
 
         if (Cli::isCli() === false) {
@@ -292,7 +293,13 @@ final class Kernel
             $uri = str_replace('//', '/', $uri);
         }
 
-        $path = (APP_PATH . 'Client/Public/' . $uri);
+        $path = (Microservice::getPath() . 'Client/Public/' . $uri);
+
+        // Fall back to the default App public directory so microservices can
+        // share packages (material-kit-pro, sweetalert, etc.) without copying them.
+        if ((file_exists($path) === false || is_dir($path) === true) && Microservice::isDefault() === false) {
+            $path = (APP_PATH . 'Client/Public/' . $uri);
+        }
 
         if (file_exists($path) === false || is_dir($path) === true) {
             return false;
