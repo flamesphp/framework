@@ -24,7 +24,7 @@ class Data
     {
         $path = (ROOT_PATH . str_replace('\\', '/', $class) . '.php');
 
-        $basePath  = (ROOT_PATH . '.cache/client-controller/');
+        $basePath  = (ROOT_PATH . '.cache/.flames/client-controller/');
         $cachePath = ($basePath . sha1($class));
         $currentTime = filemtime($path);
 

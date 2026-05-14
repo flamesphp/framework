@@ -26,9 +26,17 @@ final class Microservice
 
     /**
      * Resolves the active microservice by matching the current HTTP host against
-     * patterns defined in APP_MICROSERVICES_* environment variables.
+     * patterns defined in config.yml (microservices section).
      * Each pattern supports exact hosts and wildcards (e.g. *.domain.com).
      * Skipped in CLI mode.
+     *
+     * config.yml example:
+     *   microservices:
+     *     admin:
+     *       namespace: "Admin"
+     *       hosts:
+     *         - "admin.domain.com"
+     *         - "*.admin.local"
      *
      * @return void
      */
@@ -38,8 +46,8 @@ final class Microservice
             return;
         }
 
-        $list = Environment::get('APP_MICROSERVICES');
-        if (empty($list) === true) {
+        $config = Kernel\Config::get();
+        if (empty($config['microservices']) === true) {
             return;
         }
 
@@ -53,27 +61,22 @@ final class Microservice
             $host = explode(':', $host)[0];
         }
 
-        $names = array_map('trim', explode(',', $list));
-        foreach ($names as $name) {
-            if (empty($name) === true) {
+        foreach ($config['microservices'] as $entry) {
+            $namespace = $entry['namespace'] ?? null;
+            $hosts     = $entry['hosts']     ?? [];
+
+            if (empty($namespace) === true || empty($hosts) === true) {
                 continue;
             }
 
-            $envKey   = 'APP_MICROSERVICES_' . strtoupper($name);
-            $patterns = Environment::get($envKey);
-            if (empty($patterns) === true) {
-                continue;
-            }
-
-            $patternList = array_map('trim', explode(',', $patterns));
-            foreach ($patternList as $pattern) {
+            foreach ($hosts as $pattern) {
                 if (empty($pattern) === true) {
                     continue;
                 }
 
                 // fnmatch supports both exact hosts and wildcards (e.g. *.domain.com)
                 if (fnmatch($pattern, $host) === true) {
-                    self::activate($name);
+                    self::activate($namespace);
                     return;
                 }
             }

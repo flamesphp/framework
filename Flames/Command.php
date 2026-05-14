@@ -20,7 +20,7 @@ class Command
      */
     public static function run(string $command, bool $debug = false) : bool
     {
-        $args = ['bin'];
+        $args = ['forge'];
 
         $_args = explode(' ', $command);
         foreach ($_args as $arg) {

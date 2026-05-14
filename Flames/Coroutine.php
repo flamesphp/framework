@@ -83,7 +83,7 @@ class Coroutine
 
             $coroutinesWaiting[] = [
                 'coroutine' => $coroutine,
-                'process'   => new Process('php bin internal:coroutine ' . $coroutine['hash']),
+                'process'   => new Process('cd ' . escapeshellarg(ROOT_PATH) . ' && php forge internal:coroutine ' . $coroutine['hash']),
                 'socket'    => fopen($socketPath, 'r'),
                 'data'      => null
             ];

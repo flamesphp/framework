@@ -261,7 +261,7 @@ final class Environment
      */
     protected function load() : void
     {
-        $basePath  = (ROOT_PATH . '.cache/environment/');
+        $basePath  = (ROOT_PATH . '.cache/.flames/environment/');
         $cachePath = ($basePath . sha1($this->path));
 
         if (file_exists($this->path) === false) {

@@ -87,6 +87,7 @@ final class Kernel
         Required::file(FLAMES_PATH . 'Kernel/Wrapper/Raw.php');
 
         self::setEnvironment();
+        self::loadConfig();
         Microservice::resolve();
         self::loadPolyfill();
 
@@ -111,17 +112,57 @@ final class Kernel
     }
 
     /**
+     * Parses config.yml, stores it in Yaml::$config and injects migrated keys
+     * into the Environment so the rest of the framework can use Environment::get().
+     *
+     * @return void
+     */
+    protected static function loadConfig() : void
+    {
+        $defaults = [
+            'surface' => [
+                'enabled' => true,
+            ],
+            'polyfill' => [
+                'functions' => [],
+            ],
+            'microservices' => [],
+            'schedules'     => [],
+        ];
+
+        $configPath = ROOT_PATH . 'config.yml';
+        if (file_exists($configPath) === false) {
+            Kernel\Config::set($defaults);
+            Environment::set('CLIENT_ENGINE_ENABLED',   true);
+            Environment::set('CLIENT_TEMPLATE_ENABLED', true);
+            return;
+        }
+
+        $config = Yaml::parse(file_get_contents($configPath));
+        if ($config === null) {
+            $config = [];
+        }
+
+        $config = array_replace_recursive($defaults, $config);
+        Kernel\Config::set($config);
+
+        Environment::set('CLIENT_ENGINE_ENABLED',   $config['surface']['enabled']);
+        Environment::set('CLIENT_TEMPLATE_ENABLED', true);
+    }
+
+    /**
      * Loads polyfill functions based on the configuration.
      *
      * @return void
      */
     protected static function loadPolyfill() : void
     {
-        $polyfill = Environment::get('POLYFILL_FUNCTIONS');
-        if ($polyfill !== null) {
-            $polyfills = explode(',', Environment::get('POLYFILL_FUNCTIONS'));
-            foreach ($polyfills as $_polyfill) {
-                Required::_function($_polyfill);
+        $config = Kernel\Config::get();
+        $polyfills = $config['polyfill']['functions'] ?? [];
+
+        foreach ($polyfills as $polyfill) {
+            if (!empty($polyfill)) {
+                Required::_function($polyfill);
             }
         }
 

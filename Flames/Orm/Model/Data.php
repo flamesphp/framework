@@ -15,7 +15,7 @@ class Data
     {
         $path = (ROOT_PATH . str_replace('\\', '/', $class) . '.php');
 
-        $basePath  = (ROOT_PATH . '.cache/model/');
+        $basePath  = (ROOT_PATH . '.cache/.flames/model/');
         $cachePath = ($basePath . sha1($class));
         $currentTime = filemtime($path);
 

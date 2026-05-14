@@ -1,0 +1,5 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/vendor/flamesphp/framework/Flames/Kernel/Forge.php';
+\Flames\Kernel\Forge::boot(__DIR__, 'vendor/flamesphp/framework/Flames/Kernel.php');

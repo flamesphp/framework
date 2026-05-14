@@ -2,8 +2,10 @@
 
 namespace Flames\Cli\Command;
 
+use Flames\Cli\Command\Inject;
 use Flames\Command;
 use Flames\Environment;
+use Flames\Server\Os;
 
 /**
  * Class Install
@@ -21,20 +23,16 @@ final class Install
     protected bool $withDocker = true;
     protected bool $withApache = true;
     protected bool $withGit = true;
+    protected bool $withInject = true;
 
-    /**
-     * Constructor for the class.
-     *
-     * @param object $data The data object containing the options.
-     * @return void
-     */
     public function __construct($data)
     {
-        $this->withKeyGenerate = (!$data->option->contains('nokey'));
-        $this->withCryptoKeyGenerate = (!$data->option->contains('nocryptokey'));
-        $this->withDocker = (!$data->option->contains('nodocker'));
-        $this->withApache = (!$data->option->contains('noapache'));
-        $this->withGit = (!$data->option->contains('nogit'));
+        $this->withKeyGenerate        = (!$data->option->contains('nokey'));
+        $this->withCryptoKeyGenerate  = (!$data->option->contains('nocryptokey'));
+        $this->withDocker             = (!$data->option->contains('nodocker'));
+        $this->withApache             = (!$data->option->contains('noapache'));
+        $this->withGit                = (!$data->option->contains('nogit'));
+        $this->withInject             = (!$data->option->contains('noinject'));
     }
 
     /**
@@ -53,10 +51,11 @@ final class Install
             copy($envDistPath, $envPath);
         }
 
-        $binPath = (ROOT_PATH . 'bin');
+        $binPath = (ROOT_PATH . 'forge');
         if (file_exists($binPath) === false) {
-            $binDistPath = (FLAMES_PATH . 'Kernel/Raw/bin');
+            $binDistPath = (FLAMES_PATH . 'Kernel/Raw/forge');
             copy($binDistPath, $binPath);
+            @chmod($binPath, 0755);
         }
 
         $indexPath = (ROOT_PATH . 'index.php');
@@ -108,7 +107,10 @@ final class Install
             }
         }
 
-
+        if ($this->withInject === true && Os::isUnix()) {
+            $inject = new Inject(null);
+            $inject->run($debug);
+        }
 
         return true;
     }

@@ -75,4 +75,40 @@ class Process
         $process->pid = getmypid();
         return $process;
     }
+
+    /**
+     * Checks whether a process with the given PID is still running.
+     *
+     * @param int $pid
+     * @return bool
+     */
+    public static function isRunning(int $pid): bool
+    {
+        if (Os::isLinux() === true) {
+            // /proc/{pid}/status is the most reliable check on Linux;
+            // it works regardless of process ownership and avoids WSL quirks.
+            $statusFile = '/proc/' . $pid . '/status';
+            if (file_exists($statusFile) === false) {
+                return false;
+            }
+            $status = @file_get_contents($statusFile);
+            // Zombie processes are effectively dead for our purposes
+            if ($status !== false && preg_match('/^State:\s+Z/m', $status)) {
+                return false;
+            }
+            return true;
+        }
+
+        if (Os::isUnix() === true) {
+            return posix_kill($pid, 0) === true;
+        }
+
+        exec('tasklist /FI "PID eq ' . $pid . '" 2>NUL', $output);
+        foreach ($output as $line) {
+            if (str_contains($line, (string)$pid)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

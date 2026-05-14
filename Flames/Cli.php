@@ -14,11 +14,8 @@ final class Cli
      */
     public static function isCli() : bool
     {
-        return (
-            Kernel::MODULE === 'SERVER' && (
-                $_SERVER['SCRIPT_FILENAME'] === 'bin' ||
-                $_SERVER['SCRIPT_FILENAME'] === 'vendor/flamesphp/framework/bin'
-            )
-          );
+        $script = $_SERVER['SCRIPT_FILENAME'] ?? '';
+        $base   = basename($script);
+        return Kernel::MODULE === 'SERVER' && ($base === 'forge' || $base === 'bin');
     }
 }
