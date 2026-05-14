@@ -18,11 +18,11 @@ final class Container
         $this->args = array_values(array_slice($_SERVER['argv'], 2));
     }
 
-    /**
-     * docker compose base command — forces ANSI colour output regardless of
-     * whether PHP's passthru() is connected to a real TTY.
-     */
-    private const COMPOSE = 'CLICOLOR_FORCE=1 TERM=xterm-256color docker compose --ansi always';
+    // CLICOLOR_FORCE=1 + TERM tell docker compose to emit ANSI colours even
+    // when it can't detect a TTY itself (e.g. when called via PHP passthru).
+    // We deliberately avoid --ansi always because that flag causes docker compose
+    // to try to allocate a console PTY, which fails in many environments.
+    private const COMPOSE = 'CLICOLOR_FORCE=1 TERM=xterm-256color docker compose';
 
     public function run(bool $debug = false): bool
     {

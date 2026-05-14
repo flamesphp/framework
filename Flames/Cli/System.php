@@ -75,14 +75,14 @@ final class System
         ['install --nocryptographykey', 'Install without generating a cryptography key'],
         ['install --noexample',         'Install without example project'],
         ['install --noinject',          'Install without injecting the global forge launcher'],
-        ['inject',                      'Inject the global forge launcher in ~/.local/bin'],
+        ['inject',                      'Inject the global forge launcher'],
         ['key generate',                'Create or update the project unique key'],
         ['key generate --crypto',       'Create or update the cryptography key'],
         ['shell',                       'Open an interactive PHP REPL'],
     ];
 
     protected static array $scheduleHelp = [
-        ['schedule install',           'Register schedule runner in crontab (runs every minute)'],
+        ['schedule install',           'Register schedule runner in crontab'],
         ['schedule remove',            'Remove schedule runner from crontab'],
         ['schedule run',               'Run all due schedules'],
         ['schedule list',              'List all schedules defined in config.yml'],
@@ -98,12 +98,12 @@ final class System
     ];
 
     protected static array $surfaceHelp = [
-        ['surface build', 'Build client-side assets (controllers, events, components)'],
+        ['surface build', 'Build client-side assets'],
     ];
 
     protected static array $snapshotHelp = [
         ['snapshot',              'Build the app as static HTML pages'],
-        ['snapshot --cloudflare', 'Build for Cloudflare Pages (Cloudflare-compatible output)'],
+        ['snapshot --cloudflare', 'Build for Cloudflare Pages'],
     ];
 
     protected static array $bundleHelp = [
@@ -116,10 +116,10 @@ final class System
 
     protected static array $containerHelp = [
         ['container',                      'Show running container status'],
-        ['container run',                  'Start containers in the background (up -d)'],
-        ['container run --foreground',     'Start containers in the foreground (up)'],
+        ['container run',                  'Start containers in the background'],
+        ['container run --foreground',     'Start containers in the foreground'],
         ['container build',                'Build / rebuild container images'],
-        ['container stop',                 'Stop and remove containers (down)'],
+        ['container stop',                 'Stop and remove containers'],
         ['container compose {args}',       'Run any docker compose command'],
         ['container {service}',            'Open a bash shell in a container'],
         ['container {service} bash|sh',    'Open bash or sh in a container'],
@@ -134,9 +134,9 @@ final class System
         ['db sql {connection} {sql}',    'Run SQL on a named connection'],
         ['db model list',                'List all models across all connections'],
         ['db model list {connection}',   'List models for a specific connection'],
-        ['db migrate',                   'Force-migrate all models (all connections)'],
+        ['db migrate',                   'Force-migrate all models'],
         ['db migrate {connection}',      'Force-migrate models for a specific connection'],
-        ['db truncate',                  'Empty all tables, reset auto-increment (keeps migrations)'],
+        ['db truncate',                  'Empty all tables, reset auto-increment'],
         ['db truncate {connection}',     'Truncate tables for a specific connection'],
         ['db wipe',                      'Drop all tables in the default database'],
         ['db wipe {connection}',         'Drop all tables in a specific connection'],
@@ -161,7 +161,7 @@ final class System
     ];
 
     protected static array $routeHelp = [
-        ['route server list',                  'List all server-side (HTTP) routes'],
+        ['route server list',                  'List all server-side routes'],
         ['route client list',                  'List all client-side routes'],
         ['route server list {microservice}',   'List server-side routes for a microservice'],
         ['route client list {microservice}',   'List client-side routes for a microservice'],
