@@ -124,8 +124,8 @@ final class AutoLoad
             return;
         }
 
-        /* Case Flames\Mesh\* — loaded from the standalone flamesphp/mesh package */
-        if (str_starts_with($name, 'Flames\\Mesh\\')) {
+        /* Case Flames\Mesh and Flames\Mesh\* — loaded from flamesphp/mesh package */
+        if ($name === 'Flames\\Mesh' || str_starts_with($name, 'Flames\\Mesh\\')) {
             $path = MESH_PATH . str_replace('\\', '/', $name) . '.php';
             require $path;
             return;

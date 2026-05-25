@@ -4,7 +4,7 @@ namespace Flames\View;
 
 use Flames\Collection\Arr;
 use Flames\Kernel\Client\Virtual;
-use Flames\Template;
+use Flames\Mesh;
 
 /**
  * Class View
@@ -52,10 +52,10 @@ class Client
      */
     protected function renderHtml(Arr|array $data = null)
     {
-        $loader = new Template\Loader\ArrayLoader([
+        $loader = new Mesh\Loader\ArrayLoader([
             'index' => $this->html,
         ]);
-        $twig = new Template\Environment($loader);
+        $twig = new Mesh\Environment($loader);
         return $twig->render('index', $data);
     }
 
@@ -67,8 +67,8 @@ class Client
      */
     protected function renderFile(Arr|array $data = null)
     {
-        $loader = new Template\Loader\ArrayLoader(self::$views);
-        $twig = new Template\Environment($loader);
+        $loader = new Mesh\Loader\ArrayLoader(self::$views);
+        $twig = new Mesh\Environment($loader);
         return $twig->render($this->virtualPath, $data);
     }
 
