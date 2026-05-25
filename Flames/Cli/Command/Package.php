@@ -11,13 +11,13 @@ use Flames\Cli\Output;
  * requiring a system-wide Composer installation.
  *
  * Usage examples:
- *   forge package require vendor/package
- *   forge package remove vendor/package
- *   forge package update
- *   forge package show
- *   forge package audit
- *   forge package validate
- *   forge package {any-composer-command} [args...]
+ *   forge library require vendor/package
+ *   forge library remove vendor/package
+ *   forge library update
+ *   forge library show
+ *   forge library audit
+ *   forge library validate
+ *   forge library {any-composer-command} [args...]
  */
 final class Package
 {

@@ -207,8 +207,7 @@ final class Kernel
     protected static function setDumpper() : void
     {
         if (Environment::get('DUMP_ENABLED') === true) {
-            Dump\Dump::$theme = Dump\Dump::THEME_SOLARIZED_DARK;
-            Dump\Dump::$editor = Environment::get('DUMP_IDE');
+            \Flames\Dumpper\Dump::$editor = Environment::get('DUMP_IDE');
             Required::file(FLAMES_PATH . 'Dump/Register.php');
         }
         else {
@@ -410,9 +409,25 @@ final class Kernel
 
         if (str_ends_with(str_replace('\\', '/', $path), 'vendor/flamesphp/framework/') === true) {
             define('FLAMES_COMPOSER', true);
+
+            /* Resolve sibling packages under vendor/flamesphp/ */
+            $collectionPath = realpath($path . '../collection') . '/Flames/';
+            define('COLLECTION_PATH', $collectionPath);
+
+            $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
+            define('DUMPPER_PATH', $dumpperPath);
+
             return (realpath($path . '../../../') . '/');
         } else {
             define('FLAMES_COMPOSER', false);
+
+            /* Non-Composer layout: sibling packages live alongside the framework directory */
+            $collectionPath = realpath($path . '../collection') . '/Flames/';
+            define('COLLECTION_PATH', $collectionPath !== '/Flames/' ? $collectionPath : $path . 'Collection/');
+
+            $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
+            define('DUMPPER_PATH', $dumpperPath !== '/Flames/' ? $dumpperPath : ($path . 'Flames/'));
+
             return $path;
         }
     }

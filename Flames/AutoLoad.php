@@ -43,6 +43,8 @@ final class AutoLoad
      * It follows different loading mechanisms for classes in the "Flames", "App" and "Microservice" namespaces.
      *
      * Namespace → path mapping:
+     *   Flames\Collection\*          → COLLECTION_PATH/Collection/{rest}.php  (flamesphp/collection package)
+     *   Flames\Dumpper\*             → DUMPPER_PATH/Dumpper/{rest}.php          (flamesphp/dumpper package)
      *   Flames\*                     → FLAMES_PATH/{rest}.php
      *   App\*                        → APP_PATH/{rest}.php
      *   Microservice\Test\Server\*   → ROOT_PATH/Microservice/Test/Server/{rest}.php
@@ -53,6 +55,22 @@ final class AutoLoad
      */
     protected static function onLoad(string $name): void
     {
+        // Case Flames\Collection — loaded from the standalone flamesphp/collection package
+        if (str_starts_with($name, 'Flames\\Collection\\')) {
+            $relative = substr(str_replace('\\', '/', $name), 6) . '.php'; // 'Collection/Arr.php'
+            $path     = COLLECTION_PATH . $relative;
+            require $path;
+            return;
+        }
+
+        /* Case Flames\Dumpper — loaded from the standalone flamesphp/dumpper package (PSR-4: Flames/Dumpper/) */
+        if (str_starts_with($name, 'Flames\\Dumpper\\')) {
+            $relative = substr(str_replace('\\', '/', $name), 14) . '.php'; /* strips 'Flames/Dumpper' → e.g. '/Inc/DumpHelper.php' */
+            $path     = DUMPPER_PATH . 'Dumpper' . $relative;
+            require $path;
+            return;
+        }
+
         // Case Flames Internal
         if (str_starts_with($name, 'Flames\\')) {
             $name = substr(str_replace('\\', '/', $name), 7);

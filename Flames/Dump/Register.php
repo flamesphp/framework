@@ -1,6 +1,6 @@
 <?php
 
-use Flames\Dump\Dump;
+use Flames\Dumpper\Dump;
 
 function dump() : void
 {
@@ -12,13 +12,13 @@ function dump() : void
     Dump::$aliases[] = __FUNCTION__;
 
     $params = func_get_args();
-    call_user_func_array(array('Flames\Dump\Dump', 'dump'), $params);
+    call_user_func_array(array('Flames\Dumpper\Dump', 'dump'), $params);
 
     $buffer = ob_get_contents();
     ob_end_clean();
 
     if (\Flames\Connection\HttpClient::isHttpClient() === true || \Flames\Connection\Async::isFlamesClient() === true) {
-        $buffer = str_replace('class="_sage-parent"', 'class="_sage-parent _sage-show"', $buffer);
+        $buffer = str_replace('class="_dumpper-parent"', 'class="_dumpper-parent _dumpper-show"', $buffer);
     }
 
     $buffer = str_replace('>Flames\Collection\Arr</a>', '>Arr</a>', $buffer);
@@ -37,7 +37,7 @@ function dd()
     Dump::$aliases[] = __FUNCTION__;
 
     $params = func_get_args();
-    call_user_func_array(array('Flames\Dump\Dump', 'dump'), $params);
+    call_user_func_array(array('Flames\Dumpper\Dump', 'dump'), $params);
 
     $buffer = ob_get_contents();
     ob_end_clean();
@@ -45,7 +45,7 @@ function dd()
     $headers = (function_exists('getallheaders') ? getallheaders() : null);;
     if (isset($headers['User-Agent']) === true) {
         if (\Flames\Connection\HttpClient::isHttpClient() === true) {
-            $buffer = str_replace('"_sage-parent"', '"_sage-parent _sage-show"', $buffer);
+            $buffer = str_replace('"_dumpper-parent"', '"_dumpper-parent _dumpper-show"', $buffer);
         }
     }
 

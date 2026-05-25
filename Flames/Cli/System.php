@@ -44,7 +44,7 @@ final class System
         'snapshot'           => StaticEx::class,
         'bundle'             => Native::class,
         'container'          => Container::class,
-        'package'            => Package::class,
+        'library'            => Package::class,
         'db'                 => Db::class,
         'schedule install'   => SchedulesInstall::class,
         'schedule remove'    => SchedulesRemove::class,
@@ -65,7 +65,7 @@ final class System
     ];
 
     // Passthrough commands flush ob and skip the Flames header
-    protected static array $passthroughCommands = ['container', 'package', 'db', 'shell', 'cache'];
+    protected static array $passthroughCommands = ['container', 'library', 'db', 'shell', 'cache'];
 
     // ── Help sections ─────────────────────────────────────────────────────────
 
@@ -149,15 +149,15 @@ final class System
     ];
 
     protected static array $packageHelp = [
-        ['package',                     'List available composer commands'],
-        ['package require {package}',   'Add a new package to the project'],
-        ['package remove {package}',    'Remove a package from the project'],
-        ['package update',              'Update all project packages'],
-        ['package update {package}',    'Update a specific package'],
-        ['package show',                'Show installed packages'],
-        ['package audit',               'Check for security vulnerabilities'],
-        ['package validate',            'Validate composer.json'],
-        ['package {command} {args}',    'Run any composer command'],
+        ['library',                     'List available composer commands'],
+        ['library require {package}',   'Add a new package to the project'],
+        ['library remove {package}',    'Remove a package from the project'],
+        ['library update',              'Update all project packages'],
+        ['library update {package}',    'Update a specific package'],
+        ['library show',                'Show installed packages'],
+        ['library audit',               'Check for security vulnerabilities'],
+        ['library validate',            'Validate composer.json'],
+        ['library {command} {args}',    'Run any composer command'],
     ];
 
     protected static array $routeHelp = [
@@ -342,8 +342,18 @@ final class System
             Output::command($cmd, $desc);
         }
 
-        Output::section('Webserver (Development)');
-        foreach (self::$webserverHelp as [$cmd, $desc]) {
+        Output::section('Database');
+        foreach (self::$databaseHelp as [$cmd, $desc]) {
+            Output::command($cmd, $desc);
+        }
+
+        Output::section('Routes');
+        foreach (self::$routeHelp as [$cmd, $desc]) {
+            Output::command($cmd, $desc);
+        }
+
+        Output::section('Microservices');
+        foreach (self::$microserviceHelp as [$cmd, $desc]) {
             Output::command($cmd, $desc);
         }
 
@@ -362,28 +372,18 @@ final class System
             Output::command($cmd, $desc);
         }
 
+        Output::section('Webserver (Development)');
+        foreach (self::$webserverHelp as [$cmd, $desc]) {
+            Output::command($cmd, $desc);
+        }
+        
         Output::section('Container (Docker)');
         foreach (self::$containerHelp as [$cmd, $desc]) {
             Output::command($cmd, $desc);
         }
 
-        Output::section('Database');
-        foreach (self::$databaseHelp as [$cmd, $desc]) {
-            Output::command($cmd, $desc);
-        }
-
-        Output::section('Packages (Composer)');
+        Output::section('Libraries (Composer)');
         foreach (self::$packageHelp as [$cmd, $desc]) {
-            Output::command($cmd, $desc);
-        }
-
-        Output::section('Routes');
-        foreach (self::$routeHelp as [$cmd, $desc]) {
-            Output::command($cmd, $desc);
-        }
-
-        Output::section('Microservices');
-        foreach (self::$microserviceHelp as [$cmd, $desc]) {
             Output::command($cmd, $desc);
         }
 
