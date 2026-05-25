@@ -42,7 +42,7 @@ final class Microservice
      */
     public static function resolve(): void
     {
-        if (Cli::isCli() === true) {
+        if (\Flames\Forge\Cli::isCli() === true) {
             return;
         }
 

@@ -71,6 +71,14 @@ final class AutoLoad
             return;
         }
 
+        /* Case Flames\Forge — loaded from the standalone flamesphp/forge package (PSR-4: Flames/Forge/) */
+        if (str_starts_with($name, 'Flames\\Forge\\')) {
+            $relative = substr(str_replace('\\', '/', $name), 6) . '.php'; /* strips 'Flames' → e.g. '/Forge/Cli.php' */
+            $path     = FORGE_PATH . $relative;
+            require $path;
+            return;
+        }
+
         // Case Flames Internal
         if (str_starts_with($name, 'Flames\\')) {
             $name = substr(str_replace('\\', '/', $name), 7);

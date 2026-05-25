@@ -37,7 +37,7 @@ final class Kernel
         }
 
         $dispatchCLI = false;
-        $isCLI = Cli::isCli();
+        $isCLI = \Flames\Forge\Cli::isCli();
         if (self::dispatchEvents() === false) {
             if ($isCLI === true) {
                 self::dispatchCLI();
@@ -91,7 +91,7 @@ final class Kernel
         Microservice::resolve();
         self::loadPolyfill();
 
-        if (Cli::isCli() === false) {
+        if (\Flames\Forge\Cli::isCli() === false) {
             self::setErrorHandler();
         }
         self::setDumpper();
@@ -238,7 +238,7 @@ final class Kernel
             return false;
         }
 
-        if (Cli::isCli() === false && str_starts_with(@$_SERVER['REQUEST_URI'], '/flames')) {
+        if (\Flames\Forge\Cli::isCli() === false && str_starts_with(@$_SERVER['REQUEST_URI'], '/flames')) {
             if (Client::run(@$_SERVER['REQUEST_URI']) !== false) {
                 return true;
             }
@@ -287,7 +287,7 @@ final class Kernel
 
         self::sendHeaders($response->headers, $response->code);
         if (str_starts_with($output, '{"flames.redirect":') === true) {
-            if (Cli::isCli() === false) {
+            if (\Flames\Forge\Cli::isCli() === false) {
                 $decode = json_decode($output);
                 header('Location: ' . $decode->{"flames.redirect"});
                 exit;
@@ -307,7 +307,7 @@ final class Kernel
      */
     protected static function dispatchCLI() : bool|null
     {
-        $system = new Cli\System();
+        $system = new \Flames\Forge\Cli\System();
         return $system->run();
     }
 
@@ -384,8 +384,8 @@ final class Kernel
      */
     public static function shutdown() : void
     {
-        if (Cli::isCli() === true && \Flames\Cli\Command\Coroutine::isCoroutineRunning() === true) {
-            \Flames\Cli\Command\Coroutine::errorHandler();
+        if (\Flames\Forge\Cli::isCli() === true && \Flames\Forge\Cli\Command\Coroutine::isCoroutineRunning() === true) {
+            \Flames\Forge\Cli\Command\Coroutine::errorHandler();
         }
 
 //        $runTime = microtime(true) - constant('START_TIME');
@@ -417,6 +417,9 @@ final class Kernel
             $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
             define('DUMPPER_PATH', $dumpperPath);
 
+            $forgePath = realpath($path . '../forge') . '/Flames/';
+            define('FORGE_PATH', $forgePath);
+
             return (realpath($path . '../../../') . '/');
         } else {
             define('FLAMES_COMPOSER', false);
@@ -427,6 +430,9 @@ final class Kernel
 
             $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
             define('DUMPPER_PATH', $dumpperPath !== '/Flames/' ? $dumpperPath : ($path . 'Flames/'));
+
+            $forgePath = realpath($path . '../forge') . '/Flames/';
+            define('FORGE_PATH', $forgePath !== '/Flames/' ? $forgePath : ($path . 'Forge/'));
 
             return $path;
         }

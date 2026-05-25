@@ -2,8 +2,8 @@
 
 namespace Flames;
 
-use Flames\Cli\Data;
-use Flames\Cli\System;
+use Flames\Forge\Cli\Data;
+use Flames\Forge\Cli\System;
 
 /**
  * The Command class provides a static method to run a command.

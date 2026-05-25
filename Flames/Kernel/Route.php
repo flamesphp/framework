@@ -2,7 +2,7 @@
 
 namespace Flames\Kernel;
 
-use Flames\Cli;
+use Flames\Forge\Cli;
 use Flames\Collection\Arr;
 use Flames\Connection;
 use Flames\Js;

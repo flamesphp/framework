@@ -2,7 +2,7 @@
 
 namespace Flames;
 
-use Flames\Cli\Command\Build\Assets\Automate;
+use Flames\Forge\Cli\Command\Build\Assets\Automate;
 use Flames\Client\Builder;
 use Flames\Collection\Arr;
 use Flames\Collection\Strings;

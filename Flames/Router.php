@@ -102,7 +102,7 @@ class Router
      */
     public function getMatch() : Arr|null
     {
-        if (Cli::isCli() === false) {
+        if (\Flames\Forge\Cli::isCli() === false) {
             return self::getMatchWeb();
         }
 

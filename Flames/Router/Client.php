@@ -1,7 +1,7 @@
 <?php
 
 namespace Flames\Router;
-use Flames\Cli\Command\Build\Assets\Automate;
+use Flames\Forge\Cli\Command\Build\Assets\Automate;
 use Flames\Command;
 use Flames\Environment;
 

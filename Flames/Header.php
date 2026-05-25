@@ -92,7 +92,7 @@ class Header
                 } catch (\Exception $_) {}
             }
         } catch (\Exception $e) {
-            if (Cli::isCli() === true) {
+            if (\Flames\Forge\Cli::isCli() === true) {
                 return;
             }
 
