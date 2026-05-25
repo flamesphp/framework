@@ -21,13 +21,6 @@ abstract class Repository
 
     private static array $_data = [];
 
-    /**
-     * Class constructor for static methods.
-     *
-     * @throws Exception
-     *
-     * @return void
-     */
     public static function __constructStatic(): void
     {
         $class = static::class;
@@ -40,15 +33,6 @@ abstract class Repository
         self::$__setup[$class] = true;
     }
 
-    /**
-     * Setup method for initializing data and variables.
-     *
-     * @param Arr $data The data to set up.
-     *
-     * @return void
-     * @throws Exception when the repository does not have a model or database.
-     *
-     */
     private static function __setup(Arr $data): void
     {
         $class = static::class;
@@ -73,7 +57,7 @@ abstract class Repository
         $class = static::class;
 
         $model = self::$_data[$class]->model;
-        $model::getMetadata(true); // Force verify connection
+        $model::getMetadata(true);
 
         /** @var Database\QueryBuilder\DefaultEx $queryBuilder */
         $queryBuilder = self::getDriver()->getQueryBuilder(self::$_data[$class]->model);
@@ -81,12 +65,6 @@ abstract class Repository
         return $queryBuilder;
     }
 
-    /**
-     * Retrieves a Model instance based on the provided index.
-     *
-     * @param mixed $index The index used to retrieve the Model.
-     * @return Model|null The retrieved Model instance, or null if not found.
-     */
     public static function get(mixed $index) : Model|null
     {
         $class = static::class;
@@ -104,14 +82,6 @@ abstract class Repository
         return $rows[0];
     }
 
-    /**
-     * Retrieves data from the driver using specified filters.
-     *
-     * @param Arr|array $filters The filters to be applied.
-     * @param Arr|array|null $options (Optional) Additional options for getting the data.
-     *
-     * @return Arr|null The retrieved data as an Arr object, or null if no data is found.
-     */
     public static function withFilters(Arr|array $filters, Arr|array $options = null) : Arr|null
     {
         $filters = self::_parseFilters($filters);
@@ -133,7 +103,6 @@ abstract class Repository
             }
         }
 
-        // TODO: $options -> order, limit
         return $queryBuilder->get();
     }
 
@@ -149,14 +118,11 @@ abstract class Repository
                 $filterCount = count($filter);
                 if ($filterCount === 2) {
                     $_filters[] = [$filter[0], '=', $filter[1], 'AND'];
-                }
-                elseif ($filterCount === 3) {
+                } elseif ($filterCount === 3) {
                     $_filters[] = [$filter[0], strtoupper($filter[1]), $filter[2], 'AND'];
-                }
-                elseif ($filterCount === 4) {
+                } elseif ($filterCount === 4) {
                     $_filters[] = [$filter[0], strtoupper($filter[1]), $filter[2], $filter[3]];
-                }
-                else {
+                } else {
                     throw new Exception('Invalid filter data.');
                 }
                 continue;
@@ -168,12 +134,6 @@ abstract class Repository
         return $_filters;
     }
 
-
-    /**
-     * Returns the database driver instance.
-     *
-     * @return Database\Driver|null The database driver instance or null if not set.
-     */
     public static function getDriver(): mixed
     {
         $class = static::class;
@@ -208,9 +168,8 @@ abstract class Repository
         }
 
         if ($indexColumn === null) {
-            throw new Error('Missing primary or unique column in table ' . self::$table . ' using class ' . static::class . '.');
+            throw new \Error('Missing primary or unique column in table ' . self::$table . ' using class ' . static::class . '.');
         }
-
 
         return $indexColumn;
     }

@@ -429,6 +429,12 @@ final class Kernel
             $ormPath = realpath($path . '../orm') . '/';
             define('ORM_PATH', $ormPath);
 
+            $datePath = realpath($path . '../date') . '/';
+            define('DATE_PATH', $datePath);
+
+            $meshPath = realpath($path . '../mesh') . '/';
+            define('MESH_PATH', $meshPath);
+
             return (realpath($path . '../../../') . '/');
         } else {
             define('FLAMES_COMPOSER', false);
@@ -451,6 +457,12 @@ final class Kernel
 
             $ormPath = realpath($path . '../orm') . '/';
             define('ORM_PATH', $ormPath !== '/' ? $ormPath : ($path . 'Orm/'));
+
+            $datePath = realpath($path . '../date') . '/';
+            define('DATE_PATH', $datePath !== '/' ? $datePath : ($path . 'Date/'));
+
+            $meshPath = realpath($path . '../mesh') . '/';
+            define('MESH_PATH', $meshPath !== '/' ? $meshPath : ($path . 'Mesh/'));
 
             return $path;
         }

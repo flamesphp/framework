@@ -99,7 +99,39 @@ final class AutoLoad
             return;
         }
 
-        /* Case Flames\Orm\* + root ORM classes (Model, Repository, Database) — flamesphp/orm package */
+        /* Case Flames\Date\* — loaded from the standalone flamesphp/date package (PSR-4: Flames/Date/) */
+        if (str_starts_with($name, 'Flames\\Date\\')) {
+            $relative = substr(str_replace('\\', '/', $name), 6) . '.php'; // strips 'Flames' → '/Date/DateTime.php'
+            $path     = DATE_PATH . 'Flames' . $relative;                  // DATE_PATH/Flames/Date/DateTime.php
+            if (file_exists($path)) {
+                require $path;
+            }
+            return;
+        }
+
+        /* Case Carbon\* — legacy Carbon namespace, bridged into Flames\Date\* via alias.
+         * This keeps third-party code that uses Carbon\Carbon etc. working. */
+        if (str_starts_with($name, 'Carbon\\')) {
+            $flamesName = 'Flames\\Date\\' . substr($name, strlen('Carbon\\'));
+            if (!class_exists($flamesName, false) && !interface_exists($flamesName, false)) {
+                spl_autoload_call($flamesName);
+            }
+            if ((class_exists($flamesName, false) || interface_exists($flamesName, false))
+                && !class_exists($name, false) && !interface_exists($name, false)
+            ) {
+                class_alias($flamesName, $name);
+            }
+            return;
+        }
+
+        /* Case Flames\Mesh\* — loaded from the standalone flamesphp/mesh package */
+        if (str_starts_with($name, 'Flames\\Mesh\\')) {
+            $path = MESH_PATH . str_replace('\\', '/', $name) . '.php';
+            require $path;
+            return;
+        }
+
+        /* Case Flames\Orm\* + Flames\Model / Repository / Database — flamesphp/orm package */
         if (str_starts_with($name, 'Flames\\Orm\\')
             || $name === 'Flames\\Model'
             || $name === 'Flames\\Repository'

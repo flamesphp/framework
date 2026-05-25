@@ -14,10 +14,10 @@ class Template
             $data = [];
         }
 
-        $loader = new Template\Loader\ArrayLoader([
+        $loader = new Mesh\Loader\ArrayLoader([
             'index' => $html,
         ]);
-        $twig = new Template\Environment($loader);
+        $twig = new Mesh\Environment($loader);
         return $twig->render('index', $data);
     }
 }

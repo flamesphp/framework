@@ -3,7 +3,7 @@
 namespace Flames\Cookie;
 
 use Flames\Collection\Arr;
-use Flames\DateTime;
+use Flames\Date\DateTime;
 use Flames\Js;
 
 /**
