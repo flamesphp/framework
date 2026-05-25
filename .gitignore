@@ -1,6 +1,2 @@
-.cache/*
-.docker/.data/*
-.idea/*
-.env
-.gitmodules
-/App/*
+syntax: glob
+.idea/

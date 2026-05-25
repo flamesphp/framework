@@ -420,6 +420,15 @@ final class Kernel
             $forgePath = realpath($path . '../forge') . '/Flames/';
             define('FORGE_PATH', $forgePath);
 
+            $dockerPath = realpath($path . '../docker') . '/Flames/';
+            define('DOCKER_PATH', $dockerPath);
+
+            $libraryPath = realpath($path . '../composer') . '/Flames/';
+            define('LIBRARY_PATH', $libraryPath);
+
+            $ormPath = realpath($path . '../orm') . '/';
+            define('ORM_PATH', $ormPath);
+
             return (realpath($path . '../../../') . '/');
         } else {
             define('FLAMES_COMPOSER', false);
@@ -433,6 +442,15 @@ final class Kernel
 
             $forgePath = realpath($path . '../forge') . '/Flames/';
             define('FORGE_PATH', $forgePath !== '/Flames/' ? $forgePath : ($path . 'Forge/'));
+
+            $dockerPath = realpath($path . '../docker') . '/Flames/';
+            define('DOCKER_PATH', $dockerPath !== '/Flames/' ? $dockerPath : ($path . 'Docker/'));
+
+            $libraryPath = realpath($path . '../composer') . '/Flames/';
+            define('LIBRARY_PATH', $libraryPath !== '/Flames/' ? $libraryPath : ($path . 'Library/'));
+
+            $ormPath = realpath($path . '../orm') . '/';
+            define('ORM_PATH', $ormPath !== '/' ? $ormPath : ($path . 'Orm/'));
 
             return $path;
         }

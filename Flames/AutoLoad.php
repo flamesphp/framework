@@ -71,10 +71,41 @@ final class AutoLoad
             return;
         }
 
+        /* Case Flames\Library — loaded from the standalone flamesphp/composer package (scoped composer) */
+        if (str_starts_with($name, 'Flames\\Library\\')) {
+            static $libraryBoot = false;
+            if ($libraryBoot === false) {
+                $libraryBoot = true;
+                require LIBRARY_PATH . 'Library/AutoLoad.php';
+                \Flames\Library\AutoLoad::register();
+            }
+            \Flames\Library\AutoLoad::load($name);
+            return;
+        }
+
+        /* Case Flames\Docker — loaded from the standalone flamesphp/docker package (PSR-4: Flames/Docker/) */
+        if (str_starts_with($name, 'Flames\\Docker\\')) {
+            $relative = substr(str_replace('\\', '/', $name), 6) . '.php'; /* strips 'Flames' → e.g. '/Docker/Docker.php' */
+            $path     = DOCKER_PATH . $relative;
+            require $path;
+            return;
+        }
+
         /* Case Flames\Forge — loaded from the standalone flamesphp/forge package (PSR-4: Flames/Forge/) */
         if (str_starts_with($name, 'Flames\\Forge\\')) {
             $relative = substr(str_replace('\\', '/', $name), 6) . '.php'; /* strips 'Flames' → e.g. '/Forge/Cli.php' */
             $path     = FORGE_PATH . $relative;
+            require $path;
+            return;
+        }
+
+        /* Case Flames\Orm\* + root ORM classes (Model, Repository, Database) — flamesphp/orm package */
+        if (str_starts_with($name, 'Flames\\Orm\\')
+            || $name === 'Flames\\Model'
+            || $name === 'Flames\\Repository'
+            || $name === 'Flames\\Database'
+        ) {
+            $path = ORM_PATH . str_replace('\\', '/', $name) . '.php';
             require $path;
             return;
         }
