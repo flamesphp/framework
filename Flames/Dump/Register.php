@@ -17,14 +17,14 @@ function dump() : void
     $buffer = ob_get_contents();
     ob_end_clean();
 
-    if (\Flames\Connection\HttpClient::isHttpClient() === true || \Flames\Connection\Async::isFlamesClient() === true) {
+    if (\Flames\Connection\HttpClient::isHttpClient() === true) {
         $buffer = str_replace('class="_dumpper-parent"', 'class="_dumpper-parent _dumpper-show"', $buffer);
     }
 
     $buffer = str_replace('>Flames\Collection\Arr</a>', '>Arr</a>', $buffer);
     echo $buffer;
-    @flush();
-    @ob_flush();
+//    @flush();
+//    @ob_flush();
 }
 
 function dd()

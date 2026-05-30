@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Flames;
 
 use Flames\Collection\Arr;
@@ -9,195 +8,67 @@ use Flames\Environment\Helpers;
 /**
  * Class Environment
  *
- * The Environment class represents a configuration environment,
- * allowing users to access and modify configuration data.
- *
  * @property bool $DUMP_ENABLED
- * @property string $DUMP_IDE
  * @property string $DUMP_THEME
  */
 final class Environment
 {
-    protected static Arr|null $dataGlobal = null;
-    protected static Environment|null $dataDefault = null;
-
-    protected Arr|null $data = null;
-    protected bool $valid = true;
-    protected string|null $path;
-
-    /**
-     * Class constructor.
-     *
-     * Initializes a new instance of the class.
-     *
-     * @param mixed $path The path to the file. Defaults to null.
-     *
-     * @return void
-     */
-    public function __construct(mixed $path = null)
+    public function __construct()
     {
-        $path = (string)$path;
-
-        if (empty($path) === true) {
-            $path = (ROOT_PATH . '.env');
-        }
-
-        $this->path = $path;
         $this->load();
-        if (self::$dataDefault === null) {
-            self::$dataDefault = $this;
-        }
     }
 
-    /**
-     * Magic getter method.
-     *
-     * Retrieves the value of the specified key from the environment array.
-     *
-     * @param mixed $key The key of the value to retrieve.
-     *
-     * @return mixed|null The value of the specified key if it exists, otherwise null.
-     */
-    public function __get(mixed $key) : mixed
+    public function getAll(): Arr
+    {
+        return Arr(\Flames\Ready\ResetData::$data['.env']) ?? Arr();
+    }
+
+    public function toArray(): array
+    {
+        return (array)(\Flames\Ready\ResetData::$data['.env'] ?? Arr());
+    }
+
+    public static function get($key): mixed
     {
         $key = (string)$key;
-        if (empty($key) === true) {
+        if (empty($key)) {
             return null;
         }
 
-        if ($this->data->containsKey($key)) {
-            return $this->data[$key];
+        $store = \Flames\Ready\ResetData::$data['.env'] ?? null;
+        if ($store !== null && $store->containsKey($key)) {
+            return $store[$key];
         }
 
         return null;
     }
 
-    /**
-     * Magic method to set a value for a specific key.
-     *
-     * This method allows setting a value for a specific key in the environment array.
-     *
-     * @param mixed $key The key for which to set the value.
-     * @param mixed $value The value to set for the specified key.
-     *
-     * @return void
-     */
-    public function __set(mixed $key, mixed $value) : void
+    public static function set(mixed $key, mixed $value): void
     {
         $key = (string)$key;
-        if (empty($key) === true) {
+        if (empty($key) || !isset(\Flames\Ready\ResetData::$data['.env'])) {
             return;
         }
 
-        $this->data[$key] = $value;
+        \Flames\Ready\ResetData::$data['.env'][$key] = $value;
     }
 
-    /**
-     * Returns the array of data elements.
-     *
-     * @return Arr The array of data elements.
-     */
-    public function getAll() : Arr
+    public function inject(): void
     {
-        return $this->data;
+        $this->load();
     }
 
-    /**
-     * Returns the data elements as an array.
-     *
-     * @return array The data elements as an array.
-     */
-    public function toArray() : array
+    public function save(): void
     {
-        return (array)$this->data;
-    }
+        $path = ROOT_PATH . '.env';
+        $raw  = str_replace(["\r\n", "\r"], "\n", file_get_contents($path));
 
-    /**
-     * Returns the default Environment object, or null if no default is set.
-     *
-     * @return Environment|null The default Environment object, or null if no default is set.
-     */
-    public static function default() : Environment|null
-    {
-        return self::$dataDefault;
-    }
+        $store       = Arr(\Flames\Ready\ResetData::$data['.env']) ?? Arr();
+        $keys        = $store->getKeys()->toArray();
+        $rewriteKeys = [];
+        $mount       = '';
 
-    /**
-     * Retrieves the value associated with the given key from the environment data.
-     *
-     * @param string $key The key of the value to retrieve.
-     * @return mixed|null The value associated with the key if found, or null if the key is empty or not found.
-     */
-    public static function get($key) : mixed
-    {
-        $key = (string)$key;
-        if (empty($key) === true) {
-            return null;
-        }
-
-        if (@self::$dataGlobal->containsKey($key)) {
-            return self::$dataGlobal[$key];
-        }
-
-        return null;
-    }
-
-    /**
-     * Sets a key-value pair in the environment data array.
-     *
-     * @param mixed $key The key to set.
-     * @param mixed $value The value to set.
-     * @return void
-     */
-    public static function set(mixed $key, mixed $value) : void
-    {
-        $key = (string)$key;
-        if (empty($key) === true) {
-            return;
-        }
-
-        if (self::$dataGlobal === null) {
-            return;
-        }
-
-        self::$dataGlobal[$key] = $value;
-    }
-
-    /**
-     * Injects the environment elements of the current object into the environment data container.
-     *
-     * This method iterates through the data elements of the current object and adds them to the environment data container.
-     *
-     * @return void
-     */
-    public function inject() : void
-    {
-        if (self::$dataGlobal === null) {
-            self::$dataGlobal = Arr();
-        }
-
-        foreach ($this->data as $key => $value) {
-            self::$dataGlobal[$key] = $value;
-        }
-    }
-
-    /**
-     * Save the data to the specified file path.
-     *
-     * It writes the updated content back to the file.
-     *
-     * @return void
-     */
-    public function save() : void
-    {
-        $data = str_replace(["\r\n", "\r"], "\n", file_get_contents($this->path));
-        $mount = '';
-
-        $keys = $this->data->getKeys()->toArray();
-        $retriteKeys = [];
-
-        $lines = explode("\n", $data);
-        foreach ($lines as $line) {
+        foreach (explode("\n", $raw) as $line) {
             if (str_starts_with($line, "\n") || str_starts_with($line, '#') || str_contains($line, '=') === false) {
                 $mount .= ($line . "\n");
                 continue;
@@ -205,89 +76,37 @@ final class Environment
 
             $var = trim(explode('=', $line)[0]);
 
-            foreach ($keys as $key) {
-                if ($key === $var) {
-                    $retriteKeys[] = $key;
-                    break;
-                }
+            if (in_array($var, $keys, true)) {
+                $rewriteKeys[] = $var;
             }
 
-            $value = $this->{$var};
-            if ($value === true) {
-                $value = 'true';
-            } elseif ($value === false) {
-                $value = 'false';
-            }
-
-            if (str_contains($value, ' ')) {
-                $value = ('"' . $value . '"');
-            }
-            $mount .= ($var . '=' . $value . "\n");
+            $mount .= ($var . '=' . $this->formatValue($store[$var] ?? null) . "\n");
         }
 
-        $missingKeys = array_diff($keys, $retriteKeys);
-        foreach ($missingKeys as $key) {
-            $value = $this->{$key};
-            if ($value === true) {
-                $value = 'true';
-            } elseif ($value === false) {
-                $value = 'false';
-            }
-
-            if (str_contains($value, ' ')) {
-                $value = ('"' . $value . '"');
-            }
-
-            $mount .= ($key . '=' . $value . "\n");
+        foreach (array_diff($keys, $rewriteKeys) as $key) {
+            $mount .= ($key . '=' . $this->formatValue($store[$key]) . "\n");
         }
 
-        @file_put_contents($this->path, $mount);
+        @file_put_contents($path, $mount);
     }
 
-    /**
-     * Returns whether the object is valid or not.
-     *
-     * @return bool The validity status of the object.
-     */
-    public function isValid() : bool
+    protected function load(): void
     {
-        return $this->valid;
-    }
+        $path = ROOT_PATH . '.env';
 
-    /**
-     * This method is responsible for loading data from a file.
-     *
-     * @return void
-     */
-    protected function load() : void
-    {
-        $basePath  = (ROOT_PATH . '.cache/.flames/environment/');
-        $cachePath = ($basePath . sha1($this->path));
-
-        if (file_exists($this->path) === false) {
-
-            $this->valid = false;
-            $this->data = Arr();
+        if (!file_exists($path)) {
+            \Flames\Ready\ResetData::$data['.env'] = Arr();
             return;
         }
 
-        $currentTime = filemtime($this->path);
+        \Flames\Ready\ResetData::$data['.env'] = Arr(Helpers::fromFile($path));
+    }
 
-        if (file_exists($cachePath) === true && filemtime($cachePath) === $currentTime) {
-            $this->data = unserialize(file_get_contents($cachePath));
-            return;
-        }
-
-        $this->data = Arr(Helpers::fromFile($this->path));
-        $success = @file_put_contents($cachePath, serialize($this->data));
-        if ($success === false) {
-            if (is_dir($basePath) === false) {
-                $mask = umask(0);
-                mkdir($basePath, 0777, true);
-                umask($mask);
-                @file_put_contents($cachePath, serialize($this->data));
-            }
-        }
-        @touch($cachePath, $currentTime);
+    private function formatValue(mixed $value): string
+    {
+        if ($value === true)  return 'true';
+        if ($value === false) return 'false';
+        $value = (string)$value;
+        return str_contains($value, ' ') ? '"' . $value . '"' : $value;
     }
 }

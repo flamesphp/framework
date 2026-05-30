@@ -4,9 +4,14 @@ namespace Flames;
 
 use Flames\Collection\Arr;
 use Flames\Controller\Response;
+use Flames\Env\Env;
+use Flames\Framework\Boot;
+use Flames\Framework\Cache;
 use Flames\Kernel\Route;
 use Flames\Router\Client;
 
+use Flames\Async\Async\Service;
+use Flames\Autoload\Autoload;
 /**
  * Class Kernel
  *
@@ -16,51 +21,149 @@ use Flames\Router\Client;
  */
 final class Kernel
 {
-    public const VERSION = 'v1.0.0';
-    public const MODULE  = 'SERVER';
-    public const CDN_VERSION = 'v1.0.0';
-
-    protected static Router|null $defaultRouter = null;
-    protected static ErrorHandler\Run|null $errorHandler = null;
-
-    /**
-     * Runs the application.
-     *
-     * This method sets up the application, dispatches events, and handles the execution flow of the application.
-     *
-     * @return void
-     */
-    public static function run() : void
+    public static function boot()
     {
-        if (self::setup() === false) {
+        if (!self::autoload()) {
             return;
         }
 
-        $dispatchCLI = false;
-        $isCLI = \Flames\Forge\Cli::isCli();
-        if (self::dispatchEvents() === false) {
-            if ($isCLI === true) {
-                self::dispatchCLI();
-                $dispatchCLI = true;
-            } else {
-                if (self::renderDirectFile() === true) {
-                    return;
-                }
+        Autoload::run();
+        Env::reload();
+        Boot::run();
+
+        Cache::getPath();
+        exit;
+        try {
+            $async1 = async(function() use ($init): int {
+                sleep(3);
+                return 123 + $init;
+            });
+            $async2 = async(function(): int {
+                sleep(2);
+                return 456;
+            });
+            $async3 = async(function(): int {
+                sleep(2);
+                return 789;
+            });
+
+            $data = await($async1, $async2, $async3);
+            var_dump($data);
+            var_dump(microtime(true) - $time);
+
+        } catch (\Throwable $e) { echo $e->getMessage(); exit;}
+
+
+        echo 'vish';
+        exit;
+
+
+        exit;
+//        try {
+//            self::setErrorHandler();
+//        } catch (\Throwable $e) { var_dump($e->getMessage()); var_dump($e->getTraceAsString()); }
+
+        $test = async(function() {
+            return 'oi';
+        });
+
+        try {
+
+            $response = (await($test));
+            var_dump($response);
+        } catch (\Throwable $e) { echo $e->getTraceAsString();}
+
+
+
+
+
+            var_dump(\Flames\Forge\Cli::isCli());
+
+
+        exit;
+
+//
+//        var_dump(__flames_c_async_service_version__());
+//        exit;
+//
+//
+//        $time = microtime(true);
+//        $init = 1;
+//        $async1 = Service::async(function() use ($init): int {
+//            sleep(3);
+//            return 123 + $init;
+//        });
+//        $async2 = Service::async(function(): int {
+//            sleep(2);
+//            return 456;
+//        });
+//        $async3 = Service::async(function(): int {
+//            sleep(2);
+//            return 789;
+//        });
+//
+//        $data = Service::await($async1, $async2, $async3);
+//        var_dump($data);
+//        var_dump(microtime(true) - $time);
+//
+//        exit;
+//
+//        self::setup();
+    }
+
+    protected static function autoload(): bool
+    {
+        try {
+            ob_start();
+            define('START_TIME', microtime(true));
+            define('ROOT_PATH', (realpath(__DIR__ . '/../../../../') . '/'));
+            define('FLAMES_PATH', ROOT_PATH . 'vendor/flamesphp/');
+            define('APP_PATH', ROOT_PATH . 'App/');
+            require(FLAMES_PATH . 'autoload/Flames/Autoload/Autoload.php');
+            return true;
+        } catch (\Throwable) {}
+
+        return false;
+    }
+
+//    /**
+//     * Runs the application.
+//     *
+//     * This method sets up the application, dispatches events, and handles the execution flow of the application.
+//     *
+//     * @return void
+//     */
+//    public static function run() : void
+//    {
+//        if (self::setup() === false) {
+//            return;
+//        }
+//
+//        $dispatchCLI = false;
+//        $isCLI = \Flames\Forge\Cli::isCli();
+//        if (self::dispatchEvents() === false) {
+//            if ($isCLI === true) {
+//                self::dispatchCLI();
+//                $dispatchCLI = true;
+//            } else {
+//                if (self::renderDirectFile() === true) {
+//                    return;
+//                }
 //                if (self::renderFavIcon() === true) {
 //                    return;
 //                }
-                ErrorPage::dispatch404();
-                self::shutdown();
-                return;
-            }
-        }
-
-        if ($dispatchCLI === false && $isCLI === true) {
-            self::dispatchCLI();
-        }
-
-        self::shutdown();
-    }
+//                ErrorPage::dispatch404();
+//                self::shutdown();
+//                return;
+//            }
+//        }
+//
+//        if ($dispatchCLI === false && $isCLI === true) {
+//            self::dispatchCLI();
+//        }
+//
+//        self::shutdown();
+//    }
 
     /**
      * Sets up the application by performing various initialization tasks.
@@ -71,10 +174,13 @@ final class Kernel
     {
         ob_start();
         define('START_TIME', microtime(true));
-        define('ROOT_PATH', self::getRootPath());
+        define('ROOT_PATH', (realpath(__DIR__ . '/../../../../') . '/'));
+        define('FLAMES_PATH', ROOT_PATH . 'vendor/flamesphp/');
         define('APP_PATH', ROOT_PATH . 'App/');
+        require(FLAMES_PATH . 'autoload/Flames/Autoload/Autoload.php');
 
-        require(FLAMES_PATH . 'AutoLoad.php');
+
+        exit;
         AutoLoad::run();
 
         try {
@@ -179,7 +285,7 @@ final class Kernel
         if (Environment::get('ERROR_HANDLER_ENABLED') === true) {
             self::$errorHandler = new ErrorHandler\Run;
             $pageHandler = new ErrorHandler\Handler\PrettyPageHandler();
-            $pageHandler->setEditor(Environment::get('ERROR_HANDLER_IDE'));
+            $pageHandler->setEditor('phpstorm');
             self::$errorHandler->pushHandler($pageHandler);
             self::$errorHandler->register();
         }
@@ -207,7 +313,7 @@ final class Kernel
     protected static function setDumpper() : void
     {
         if (Environment::get('DUMP_ENABLED') === true) {
-            \Flames\Dumpper\Dump::$editor = Environment::get('DUMP_IDE');
+            \Flames\Dumpper\Dump::$editor = 'phpstorm';
             Required::file(FLAMES_PATH . 'Dump/Register.php');
         }
         else {
@@ -404,7 +510,10 @@ final class Kernel
 
     protected static function getRootPath()
     {
-        $path = (realpath(__DIR__ . '/../') . '/');
+        $path = (realpath(__DIR__ . '/../../') . '/');
+        var_dump($path);
+        exit;
+
         define('FLAMES_PATH', $path . 'Flames/');
 
         if (str_ends_with(str_replace('\\', '/', $path), 'vendor/flamesphp/framework/') === true) {

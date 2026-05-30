@@ -32,7 +32,7 @@ final class AutoLoad
         }
 
         \spl_autoload_register(function ($name) {
-            self::onLoad($name);
+            self::onLoad((string)$name);
         });
     }
 
