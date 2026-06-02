@@ -32,6 +32,7 @@ class Dispatch
     {
         // LOGICA DO REQUEST AQUI
         echo @$_SERVER['REQUEST_URI'];
+        echo 'teste 00017';
         return;
     }
 
