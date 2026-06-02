@@ -23,6 +23,8 @@ use Flames\Autoload\Autoload;
  */
 final class Kernel
 {
+    const VERSION = '1.0.0';
+
     public static $fuckzzz = 123;
     public static Errors\Run|null $errorHandler = null;
 

@@ -21,6 +21,19 @@ class Boot
         Dispatch::run();
     }
 
+    public static function registerWebHandlers(): void
+    {
+        if (Env::get('ERROR_HANDLER_ENABLED') === true) {
+            self::$errorHandler = new Errors\Run;
+            $pageHandler = new Errors\Handler\PrettyPageHandler();
+            $pageHandler->setEditor('phpstorm');
+            $pageHandler->handleUnconditionally(true);
+            self::$errorHandler->pushHandler($pageHandler);
+            self::$errorHandler->register();
+        }
+        self::registerDumpper();
+    }
+
     protected static function registerErrorHandler()
     {
         if (Env::get('ERROR_HANDLER_ENABLED') === true) {
@@ -35,6 +48,8 @@ class Boot
 
     protected static function registerDumpper()
     {
-        require (FLAMES_PATH . 'autoload/resources/functions.php');
+        if (!function_exists('dump')) {
+            require(FLAMES_PATH . 'autoload/resources/functions.php');
+        }
     }
 }
