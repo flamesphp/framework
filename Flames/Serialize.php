@@ -13,7 +13,7 @@ class Serialize
         return unserialize($serialize);
     }
 
-    public static function stringfy(mixed $serialize)
+    public static function stringify(mixed $serialize)
     {
         return serialize($serialize);
     }

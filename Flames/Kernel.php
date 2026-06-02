@@ -8,6 +8,8 @@ use Flames\Env\Env;
 use Flames\Framework\Boot;
 use Flames\Framework\Cache;
 use Flames\Kernel\Route;
+use Flames\Reflection\Reflection;
+use Flames\Reflection\ReflectionClass;
 use Flames\Router\Client;
 
 use Flames\Async\Async\Service;
@@ -21,105 +23,43 @@ use Flames\Autoload\Autoload;
  */
 final class Kernel
 {
+    public static $fuckzzz = 123;
+    public static Errors\Run|null $errorHandler = null;
+
+
     public static function boot()
     {
-        if (!self::autoload()) {
+        if (!self::setup()) {
             return;
         }
 
-        Autoload::run();
-        Env::reload();
         Boot::run();
+    }
 
-        Cache::getPath();
-        exit;
-        try {
-            $async1 = async(function() use ($init): int {
-                sleep(3);
-                return 123 + $init;
-            });
-            $async2 = async(function(): int {
-                sleep(2);
-                return 456;
-            });
-            $async3 = async(function(): int {
-                sleep(2);
-                return 789;
-            });
+    public static function setup(): bool
+    {
+        self::hookPaths();
+        if (!self::autoload()) {
+            return false;
+        }
 
-            $data = await($async1, $async2, $async3);
-            var_dump($data);
-            var_dump(microtime(true) - $time);
+        Env::reload();
+        return true;
+    }
 
-        } catch (\Throwable $e) { echo $e->getMessage(); exit;}
-
-
-        echo 'vish';
-        exit;
-
-
-        exit;
-//        try {
-//            self::setErrorHandler();
-//        } catch (\Throwable $e) { var_dump($e->getMessage()); var_dump($e->getTraceAsString()); }
-
-        $test = async(function() {
-            return 'oi';
-        });
-
-        try {
-
-            $response = (await($test));
-            var_dump($response);
-        } catch (\Throwable $e) { echo $e->getTraceAsString();}
-
-
-
-
-
-            var_dump(\Flames\Forge\Cli::isCli());
-
-
-        exit;
-
-//
-//        var_dump(__flames_c_async_service_version__());
-//        exit;
-//
-//
-//        $time = microtime(true);
-//        $init = 1;
-//        $async1 = Service::async(function() use ($init): int {
-//            sleep(3);
-//            return 123 + $init;
-//        });
-//        $async2 = Service::async(function(): int {
-//            sleep(2);
-//            return 456;
-//        });
-//        $async3 = Service::async(function(): int {
-//            sleep(2);
-//            return 789;
-//        });
-//
-//        $data = Service::await($async1, $async2, $async3);
-//        var_dump($data);
-//        var_dump(microtime(true) - $time);
-//
-//        exit;
-//
-//        self::setup();
+    protected static function hookPaths(): void
+    {
+        define('START_TIME', microtime(true));
+        define('ROOT_PATH', (realpath(__DIR__ . '/../../../../') . '/'));
+        define('FLAMES_PATH', ROOT_PATH . 'vendor/flamesphp/');
+        define('APP_PATH', ROOT_PATH . 'App/');
     }
 
     protected static function autoload(): bool
     {
         try {
-            ob_start();
-            define('START_TIME', microtime(true));
-            define('ROOT_PATH', (realpath(__DIR__ . '/../../../../') . '/'));
-            define('FLAMES_PATH', ROOT_PATH . 'vendor/flamesphp/');
-            define('APP_PATH', ROOT_PATH . 'App/');
             require(FLAMES_PATH . 'autoload/Flames/Autoload/Autoload.php');
+            Autoload::run();
             return true;
         } catch (\Throwable) {}
 
@@ -170,160 +110,144 @@ final class Kernel
      *
      * @return void
      */
-    protected static function setup() : bool
-    {
-        ob_start();
-        define('START_TIME', microtime(true));
-        define('ROOT_PATH', (realpath(__DIR__ . '/../../../../') . '/'));
-        define('FLAMES_PATH', ROOT_PATH . 'vendor/flamesphp/');
-        define('APP_PATH', ROOT_PATH . 'App/');
-        require(FLAMES_PATH . 'autoload/Flames/Autoload/Autoload.php');
-
-
-        exit;
-        AutoLoad::run();
-
-        try {
-            mb_internal_encoding('UTF-8');
-        } catch (\Error $e) {
-            Required::file(FLAMES_PATH . 'Kernel/Missing/mbstring.php');
-            return false;
-        }
-
-        Required::file(FLAMES_PATH . 'Kernel/Wrapper/Raw.php');
-
-        self::setEnvironment();
-        self::loadConfig();
-        Microservice::resolve();
-        self::loadPolyfill();
-
-        if (\Flames\Forge\Cli::isCli() === false) {
-            self::setErrorHandler();
-        }
-        self::setDumpper();
-        self::setDate();
-
-        return true;
-    }
+//    protected static function setup() : bool
+//    {
+//        ob_start();
+//        define('START_TIME', microtime(true));
+//        define('ROOT_PATH', (realpath(__DIR__ . '/../../../../') . '/'));
+//        define('FLAMES_PATH', ROOT_PATH . 'vendor/flamesphp/');
+//        define('APP_PATH', ROOT_PATH . 'App/');
+//        require(FLAMES_PATH . 'autoload/Flames/Autoload/Autoload.php');
+//
+//
+//        exit;
+//        AutoLoad::run();
+//
+//        try {
+//            mb_internal_encoding('UTF-8');
+//        } catch (\Error $e) {
+//            Required::file(FLAMES_PATH . 'Kernel/Missing/mbstring.php');
+//            return false;
+//        }
+//
+//        Required::file(FLAMES_PATH . 'Kernel/Wrapper/Raw.php');
+//
+//        self::setEnvironment();
+//        self::loadConfig();
+//        Microservice::resolve();
+//        self::loadPolyfill();
+//
+//        if (\Flames\Forge\Cli::isCli() === false) {
+//            self::setErrorHandler();
+//        }
+//        self::setDumpper();
+//        self::setDate();
+//
+//        return true;
+//    }
 
     /**
      * Sets the environment for the application by injecting the environment variables.
      *
      * @return void
      */
-    protected static function setEnvironment() : void
-    {
-        $environment = new Environment();
-        $environment->inject();
-    }
-
-    /**
-     * Parses config.yml, stores it in Yaml::$config and injects migrated keys
-     * into the Environment so the rest of the framework can use Environment::get().
-     *
-     * @return void
-     */
-    protected static function loadConfig() : void
-    {
-        $defaults = [
-            'surface' => [
-                'enabled' => true,
-            ],
-            'polyfill' => [
-                'functions' => [],
-            ],
-            'microservices' => [],
-            'schedules'     => [],
-        ];
-
-        $configPath = ROOT_PATH . 'config.yml';
-        if (file_exists($configPath) === false) {
-            Kernel\Config::set($defaults);
-            Environment::set('CLIENT_ENGINE_ENABLED',   true);
-            Environment::set('CLIENT_TEMPLATE_ENABLED', true);
-            return;
-        }
-
-        $config = Yaml::parse(file_get_contents($configPath));
-        if ($config === null) {
-            $config = [];
-        }
-
-        $config = array_replace_recursive($defaults, $config);
-        Kernel\Config::set($config);
-
-        Environment::set('CLIENT_ENGINE_ENABLED',   $config['surface']['enabled']);
-        Environment::set('CLIENT_TEMPLATE_ENABLED', true);
-    }
-
-    /**
-     * Loads polyfill functions based on the configuration.
-     *
-     * @return void
-     */
-    protected static function loadPolyfill() : void
-    {
-        $config = Kernel\Config::get();
-        $polyfills = $config['polyfill']['functions'] ?? [];
-
-        foreach ($polyfills as $polyfill) {
-            if (!empty($polyfill)) {
-                Required::_function($polyfill);
-            }
-        }
-
-        Required::_function('parse_raw_http_request');
-    }
-
-    /**
-     * Sets up the error handler for the application.
-     *
-     * @return void
-     */
-    protected static function setErrorHandler() : void
-    {
-        if (Environment::get('ERROR_HANDLER_ENABLED') === true) {
-            self::$errorHandler = new ErrorHandler\Run;
-            $pageHandler = new ErrorHandler\Handler\PrettyPageHandler();
-            $pageHandler->setEditor('phpstorm');
-            self::$errorHandler->pushHandler($pageHandler);
-            self::$errorHandler->register();
-        }
-    }
-
-    /**
-     * Returns the error handler instance.
-     *
-     * @return ErrorHandler\Run The error handler instance.
-     */
-    public static function getErrorHandler() : ErrorHandler\Run
-    {
-        return self::$errorHandler;
-    }
-
-    /**
-     * Sets up the Dumpper for the application.
-     *
-     * This method configures the Dumpper based on the application's environment.
-     * If dump is enabled, it sets the Dumpper theme and editor, and registers the Dumpper.
-     * If dump is disabled, it uses the Plain Dumpper.
-     *
-     * @return void
-     */
-    protected static function setDumpper() : void
-    {
-        if (Environment::get('DUMP_ENABLED') === true) {
-            \Flames\Dumpper\Dump::$editor = 'phpstorm';
-            Required::file(FLAMES_PATH . 'Dump/Register.php');
-        }
-        else {
-            Required::file(FLAMES_PATH . 'Dump/Plain.php');
-        }
-    }
+//    protected static function setEnvironment() : void
+//    {
+//        $environment = new Environment();
+//        $environment->inject();
+//    }
+//
+//    /**
+//     * Parses config.yml, stores it in Yaml::$config and injects migrated keys
+//     * into the Environment so the rest of the framework can use Environment::get().
+//     *
+//     * @return void
+//     */
+//    protected static function loadConfig() : void
+//    {
+//        $defaults = [
+//            'surface' => [
+//                'enabled' => true,
+//            ],
+//            'polyfill' => [
+//                'functions' => [],
+//            ],
+//            'microservices' => [],
+//            'schedules'     => [],
+//        ];
+//
+//        $configPath = ROOT_PATH . 'config.yml';
+//        if (file_exists($configPath) === false) {
+//            Kernel\Config::set($defaults);
+//            Env::set('CLIENT_ENGINE_ENABLED',   true);
+//            Env::set('CLIENT_TEMPLATE_ENABLED', true);
+//            return;
+//        }
+//
+//        $config = Yaml::parse(file_get_contents($configPath));
+//        if ($config === null) {
+//            $config = [];
+//        }
+//
+//        $config = array_replace_recursive($defaults, $config);
+//        Kernel\Config::set($config);
+//
+//        Env::set('CLIENT_ENGINE_ENABLED',   $config['surface']['enabled']);
+//        Env::set('CLIENT_TEMPLATE_ENABLED', true);
+//    }
+//
+//    /**
+//     * Loads polyfill functions based on the configuration.
+//     *
+//     * @return void
+//     */
+//    protected static function loadPolyfill() : void
+//    {
+//        $config = Kernel\Config::get();
+//        $polyfills = $config['polyfill']['functions'] ?? [];
+//
+//        foreach ($polyfills as $polyfill) {
+//            if (!empty($polyfill)) {
+//                Required::_function($polyfill);
+//            }
+//        }
+//
+//        Required::_function('parse_raw_http_request');
+//    }
+//
+//    /**
+//     * Returns the error handler instance.
+//     *
+//     * @return Errors\Run The error handler instance.
+//     */
+//    public static function getErrorHandler() : Errors\Run
+//    {
+//        return self::$errorHandler;
+//    }
+//
+//    /**
+//     * Sets up the Dumpper for the application.
+//     *
+//     * This method configures the Dumpper based on the application's environment.
+//     * If dump is enabled, it sets the Dumpper theme and editor, and registers the Dumpper.
+//     * If dump is disabled, it uses the Plain Dumpper.
+//     *
+//     * @return void
+//     */
+//    protected static function setDumpper() : void
+//    {
+//        if (Env::get('DUMP_ENABLED') === true) {
+//            \Flames\Dumpper\Dump::$editor = 'phpstorm';
+//            Required::file(FLAMES_PATH . 'Dump/Register.php');
+//        }
+//        else {
+//            Required::file(FLAMES_PATH . 'Dump/Plain.php');
+//        }
+//    }
 
     protected static function setDate(): void
     {
-        $timezone = Environment::get('DATE_TIMEZONE');
+        $timezone = Env::get('DATE_TIMEZONE');
         if ($timezone !== null && $timezone !== '') {
             \date_default_timezone_set($timezone);
             return;

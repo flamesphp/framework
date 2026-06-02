@@ -13,7 +13,7 @@ class Json
         return json_decode($json);
     }
 
-    public static function stringfy(mixed $data)
+    public static function stringify(mixed $data)
     {
         return json_encode($data);
     }

@@ -1,13 +1,6 @@
 {
   "name": "flamesphp/framework",
   "description": "The Flames PHP Framework.",
-  "keywords": ["framework", "laravel"],
-  "authors": [
-    {
-      "name": "Gabriel 'Kazz' Morgado",
-      "email": "kazzxd1@gmail.com"
-    }
-  ],
   "minimum-stability": "dev",
   "prefer-stable": true,
   "license": "MIT",
