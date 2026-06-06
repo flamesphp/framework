@@ -1,39 +1,71 @@
 <?php
+declare(strict_types=1);
+
 
 namespace Flames\Framework;
 
-use Flames\Env\Env;
-use Flames\Forge\Cli;
-use Flames\Errors;
-use Flames\Required;
+use Flames\Framework\Connection;
+use Flames\Framework\Controller\Response;
+use Flames\Framework\Event;
+use Flames\Framework\Header;
+use Flames\Interfaces\Event\Route as RouteContract;
+use Flames\Framework\Controller\RequestMount;
 
 /**
  * @internal
  */
 class Dispatch
 {
-
-    public static function run()
+    public static function run(): bool
     {
-        if (Cli::isCli()) {
-            return self::cli();
-        }
-
         return self::dispatch();
     }
 
-    protected static function cli()
+    public static function dispatch(): bool
     {
-        $system = new \Flames\Forge\Cli\System();
-        return $system->run();
+        Event::dispatch(RouteContract::class, 'Route', 'onRoute');
+
+        if (Router::hasRoutes() === false) {
+            return false;
+        }
+
+        $match = Router::getMatch();
+        if ($match === null) {
+            return false;
+        }
+
+        return self::dispatchRoute($match);
     }
 
-    public static function dispatch()
+    protected static function dispatchRoute(object $routeData): bool
     {
-        // LOGICA DO REQUEST AQUI
-        echo @$_SERVER['REQUEST_URI'];
-        echo 'teste 00017';
-        return;
-    }
+        $requestData = RequestMount::mountRequestData($routeData, Connection::getIp());
+        $requestDataAllow = Event::dispatch('Route', 'onMatch', $requestData);
+        if ($requestDataAllow === false) {
+            return false;
+        }
 
+        $controller = new $routeData->controller();
+        $response = Response::from($controller->onRequest($requestData));
+        $output = $response->output;
+
+        $_output = Event::dispatch('Output', 'onOutput', $requestData, $output);
+        if ($_output !== null) {
+            $output = (string) $_output;
+        }
+
+        Header::set('Code', $response->code);
+        Header::set('Content-Type', $response->contentType);
+        Header::send();
+
+        if (str_starts_with($output, '{"flames.redirect":') === true) {
+            $decode = json_decode($output);
+            header('Location: ' . $decode->{"flames.redirect"});
+            exit;
+        }
+
+        echo $output;
+
+        return true;
+    }
 }

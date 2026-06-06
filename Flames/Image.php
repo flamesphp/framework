@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 /**
  * Class Image
@@ -11,6 +13,7 @@
 namespace Flames;
 
 use Flames\Crypto\Hash;
+use Flames\Framework\Header;
 use Flames\Exception\Unserialize;
 use Flames\Http\Client;
 use GdImage;

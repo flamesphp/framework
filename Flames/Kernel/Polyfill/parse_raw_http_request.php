@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 function parse_raw_http_request(array &$a_data)
 {

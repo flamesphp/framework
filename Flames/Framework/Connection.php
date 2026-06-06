@@ -1,13 +1,13 @@
 <?php
+declare(strict_types=1);
 
-namespace Flames;
+
+namespace Flames\Framework;
 
 /**
- * Class Connection
- *
  * The Connection class is responsible for retrieving the client's IP address.
  */
-class Connection
+final class Connection
 {
     protected static string|null $currentIp = null;
     protected static string|null $currentIpProxy = null;
@@ -18,7 +18,7 @@ class Connection
      * @param bool $parseProxy Determines whether to parse the proxy IP address (default: false)
      * @return string|null The client IP address or null if it cannot be determined
      */
-    public static function getIp(bool $parseProxy = false) : string|null
+    public static function getIp(bool $parseProxy = false): string|null
     {
         if ($parseProxy === true) {
             if (self::$currentIpProxy !== null) {
@@ -50,6 +50,4 @@ class Connection
 
         return null;
     }
-
-
 }

@@ -1,10 +1,12 @@
 <?php
+declare(strict_types=1);
+
 
 namespace Flames\Browser;
 
 use App\Client\Component\Loading;
 use Flames\Coroutine;
-use Flames\Header;
+use Flames\Framework\Header;
 use Flames\Js;
 use Flames\Kernel;
 use Flames\Http;

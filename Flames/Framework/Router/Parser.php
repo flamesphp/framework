@@ -1,8 +1,10 @@
 <?php
+declare(strict_types=1);
+
 
 // AltoRouter fork: https://github.com/dannyvankooten/AltoRouter
 
-namespace Flames\Router;
+namespace Flames\Framework\Router;
 
 use Exception;
 use RuntimeException;

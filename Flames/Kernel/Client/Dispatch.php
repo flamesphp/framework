@@ -1,23 +1,25 @@
 <?php
+declare(strict_types=1);
+
 
 namespace Flames\Kernel\Client;
 
 use Flames\Client\Browser\DevTools;
-use Flames\Connection;
+use Flames\Framework\Connection;
 use Flames\Coroutine;
 use Flames\Element;
 use Flames\Environment;
 use Flames\Event\Element\Click;
 use Flames\Event\Element\Change;
 use Flames\Event\Element\Input;
-use Flames\Header;
+use Flames\Framework\Header;
 use Flames\Js;
 use Flames\Kernel;
 use Flames\Kernel\Client\Dispatch\Native;
 use Flames\Kernel\Client\Error;
 use Flames\Kernel\Client\Service\Keyboard;
-use Flames\Kernel\Route;
-use Flames\Router;
+use Flames\Framework\Controller\RequestMount;
+use Flames\Framework\Router;
 
 /**
  * @internal
@@ -179,10 +181,10 @@ final class Dispatch
 
             if (class_exists('\\App\\Client\\Event\\Route') === true) {
                 $route = new \App\Client\Event\Route();
-                $router = $route->onRoute(new Router());
+                $route->onRoute();
 
-                if ($router !== null) {
-                    $match = $router->getMatch();
+                if (Router::hasRoutes()) {
+                    $match = Router::getMatch();
                     if ($match === null) {
                         self::$currentLoadId++;
                         return false;
@@ -206,7 +208,7 @@ final class Dispatch
 
     protected static function dispatchRoute($routeData, $route) : bool
     {
-        $requestData = Route::mountRequestData($routeData, Connection::getIp());
+        $requestData = RequestMount::mountRequestData($routeData, Connection::getIp());
 
         $requestDataAllow = $route->onMatch($requestData);
         if ($requestDataAllow === false) {
@@ -215,7 +217,7 @@ final class Dispatch
 
         $controller = new $routeData->controller();
         self::$instances[$routeData->controller] = $controller;
-        $controller->{$routeData->delegate}($requestData);
+        $controller->onRequest($requestData);
         return true;
     }
 

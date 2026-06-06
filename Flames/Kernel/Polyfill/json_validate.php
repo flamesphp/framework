@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 function json_validate(string $json, int $depth = 512, int $flags = 0): bool
 {

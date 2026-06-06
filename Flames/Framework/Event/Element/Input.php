@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 namespace Flames\Event\Element;
 
@@ -6,18 +8,17 @@ use Flames\Element;
 
 /**
  * Description for the class
+ *
  * @property Element|null $target
+ * @property string|bool|null $value
  */
-class Focus
+class Input
 {
     protected Element|null $target = null;
 
-    protected bool $focus = false;
-
-    public function __construct(Element $target, bool $focus = false)
+    public function __construct(Element $target)
     {
         $this->target = $target;
-        $this->focus = $focus;
     }
 
     public function __get(string $key) : mixed
@@ -27,8 +28,8 @@ class Focus
         if ($key === 'target') {
             return $this->target;
         }
-        if ($key === 'focus') {
-            return $this->focus;
+        elseif ($key === 'value') {
+            return $this->target->value;
         }
 
         return null;

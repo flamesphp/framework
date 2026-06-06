@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 // DotEnv fork: https://github.com/vlucas/phpdotenv
 

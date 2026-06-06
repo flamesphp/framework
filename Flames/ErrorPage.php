@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 /**
  * Class ErrorPage
@@ -9,6 +11,8 @@
 namespace Flames;
 
 use Flames\Forge\Cli\Command\Build\App\StaticEx;
+use Flames\Framework\Header;
+use Flames\Framework\Router;
 
 /**
  * Class ErrorPage
@@ -70,17 +74,16 @@ final class ErrorPage
      */
     protected static function route404() : string|bool
     {
-        $router = Kernel::getDefaultRouter();
-        if ($router === null) {
+        if (Router::hasRoutes() === false) {
             return false;
         }
 
-        $metadatas = $router->getMetadata();
+        $metadatas = Router::getMetadata();
         foreach ($metadatas as $metadata) {
             if ($metadata->routeFormatted === '404') {
                 $currentUri = $_SERVER['REQUEST_URI'];
                 $_SERVER['REQUEST_URI'] = '404';
-                $match = $router->getMatch();
+                $match = Router::getMatch();
                 $_SERVER['REQUEST_URI'] = $currentUri;
                 if ($match === null) {
                     return false;

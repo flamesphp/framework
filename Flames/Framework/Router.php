@@ -1,6 +1,8 @@
 <?php
+declare(strict_types=1);
 
-namespace Flames;
+
+namespace Flames\Framework;
 
 use Flames\Collection\Arr;
 use Flames\Collection\Strings;
@@ -10,18 +12,31 @@ use Flames\Collection\Strings;
  *
  * The Router class handles routing and matching of routes.
  */
-class Router
+final class Router
 {
-    protected Arr|null $routes = null;
+    protected static Arr|null $routes = null;
 
-    /**
-     * Constructor for the class.
-     *
-     * @return void
-     */
-    public function __construct()
+    private function __construct()
     {
-        $this->routes = Arr();
+    }
+
+    protected static function routes(): Arr
+    {
+        if (self::$routes === null) {
+            self::$routes = Arr();
+        }
+
+        return self::$routes;
+    }
+
+    public static function clear(): void
+    {
+        self::$routes = Arr();
+    }
+
+    public static function hasRoutes(): bool
+    {
+        return self::routes()->count > 0;
     }
 
     /**
@@ -30,16 +45,14 @@ class Router
      * @param mixed $method The HTTP method for the route, default is 'GET'.
      * @param mixed $route The URL route, default is '/'.
      * @param mixed $controller The controller for the route.
-     * @param mixed $controllerMethod The controller method for the route, default is 'onRequest'.
      *
      * @return void
      */
-    public function add(mixed $method = 'GET', mixed $route = '/', mixed $controller = null, mixed $controllerMethod = 'onRequest')
+    public static function add(mixed $method = 'GET', mixed $route = '/', mixed $controller = null): void
     {
-        $route          = (string)$route;
-        $method         = (string)$method;
-        $controller     = (string)$controller;
-        $delegateString = (string)$controllerMethod;
+        $route      = (string)$route;
+        $method     = (string)$method;
+        $controller = (string)$controller;
 
         $routeData = Arr();
 
@@ -49,13 +62,12 @@ class Router
 
         $routeData->controller = $controller;
         if (Strings::isEmpty($routeData->controller) === true) {
-            return null;
+            return;
         }
 
         $routeData->routeFormatted = $route;
         $routeData->parameters     = Arr();
-        $routeData->methods        = $method;
-        $routeData->delegate       = $delegateString;
+        $routeData->methods          = $method;
 
         $routeParsed = ('' . $route);
 
@@ -88,11 +100,11 @@ class Router
             for ($i = 0; $i < $routeData->parameters->count; $i++) {
                 $routeCaseInsensitive = Strings::replace($routeCaseInsensitive, '{%parameter' . $i . '%}', '{' . $routeData->parameters[$i] . '}');
             }
-        } else  {
+        } else {
             $routeData->routeFormatted = Strings::toLower($routeData->routeFormatted);
         }
 
-        $this->routes->add($routeData);
+        self::routes()->add($routeData);
     }
 
     /**
@@ -100,13 +112,13 @@ class Router
      *
      * @return Arr|null The match based on the current environment.
      */
-    public function getMatch() : Arr|null
+    public static function getMatch(): ?Arr
     {
         if (\Flames\Forge\Cli::isCli() === false) {
             return self::getMatchWeb();
         }
 
-        return $this->getMatchCLI();
+        return self::getMatchCLI();
     }
 
     /**
@@ -114,14 +126,14 @@ class Router
      *
      * @return Arr|null The matched web route information, or null if no match is found.
      */
-    protected function getMatchWeb() : Arr|null
+    protected static function getMatchWeb(): ?Arr
     {
-        // Mount router
         $router = new Router\Parser();
 
         $paramItems = Arr();
-        for ($i = 0; $i < $this->routes->count; $i++) {
-            $route = ($this->routes[$i]);
+        $routes     = self::routes();
+        for ($i = 0; $i < $routes->count; $i++) {
+            $route = ($routes[$i]);
             if ($route->methods === 'CLI') {
                 continue;
             }
@@ -134,40 +146,41 @@ class Router
                     '[*:item' . $paramItems->count . 'item]');
             }
 
-            $router->map($route->methods, $routeParsed, null, $i);
+            $router->map($route->methods, $routeParsed, null, (string) $i);
         }
 
-        // Try get
         $match = $router->match();
 
         if ($match === false || $match === null) {
             return null;
         }
 
-        $route = ($this->routes[($match['name'])]);
+        $route = ($routes[(int) $match['name']]);
         $parameters = Arr();
         $matchParameters = Arr($match['params']);
 
         foreach ($route->parameters as $param) {
             $encodedItem = null;
-            for ($i = 0; $i < $paramItems->count; $i++)
+            for ($i = 0; $i < $paramItems->count; $i++) {
                 if ($paramItems[$i] == $param) {
                     $break = false;
                     $encodedItem = ('item' . ($i + 1) . 'item');
 
-                    foreach ($matchParameters as $_paramEnc => $value)
+                    foreach ($matchParameters as $_paramEnc => $value) {
                         if ($encodedItem == $_paramEnc) {
                             $parameters[$param] = $value;
                             $break = true;
                             break;
                         }
+                    }
 
-                    if ($break == true)
+                    if ($break == true) {
                         break;
+                    }
                 }
+            }
         }
 
-        // Parse parameters values to case sensitive
         $currentUrl = $_SERVER['REQUEST_URI'];
         $currentUrlLower = Strings::toLower($currentUrl);
         $caseSensitiveParameters = Arr();
@@ -193,7 +206,6 @@ class Router
             'command'    => null,
             'controller' => $route->controller,
             'parameters' => $caseSensitiveParameters,
-            'delegate'   => $route->delegate
         ]);
     }
 
@@ -202,7 +214,7 @@ class Router
      *
      * @return Arr|null Returns the matched route as an Arr object if found, otherwise returns null.
      */
-    protected function getMatchCLI() : Arr|null
+    protected static function getMatchCLI(): ?Arr
     {
         $args = $_SERVER['argv'];
         if (count($args) === 1) {
@@ -211,8 +223,7 @@ class Router
 
         $command = $args[1];
 
-        // Match
-        foreach ($this->routes as $route) {
+        foreach (self::routes() as $route) {
             if ($route->methods !== 'CLI') {
                 continue;
             }
@@ -223,7 +234,6 @@ class Router
                     'command'    => $command,
                     'controller' => $route->controller,
                     'parameters' => $route->parameters,
-                    'delegate'   => $route->delegate
                 ]);
             }
         }
@@ -236,8 +246,8 @@ class Router
      *
      * @return Arr The metadata array.
      */
-    public function getMetadata() : Arr
+    public static function getMetadata(): Arr
     {
-        return $this->routes;
+        return self::routes();
     }
 }

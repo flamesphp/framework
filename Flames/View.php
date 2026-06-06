@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 namespace Flames;
 
@@ -67,7 +69,7 @@ class View
      */
     protected function renderFile(Arr|array $data = null)
     {
-        $loader = new Mesh\Loader\FilesystemLoader(\Flames\Microservice::getPath() . 'Client/View/');
+        $loader = new Mesh\Loader\FilesystemLoader(\Flames\Microservice\Microservice::getPath() . 'Client/View/');
         $twig = new Mesh\Environment($loader, [
 //            'cache' => (ROOT_PATH . '.cache/view-twig'),
         ]);
@@ -84,7 +86,7 @@ class View
      */
     public function addView(string $path) : void
     {
-        $fullPath = (\Flames\Microservice::getPath() . 'Client/View/' . $path);
+        $fullPath = (\Flames\Microservice\Microservice::getPath() . 'Client/View/' . $path);
         if (file_exists($fullPath) === false) {
             throw new \Exception('View path ' . $fullPath . ' does not exists.');
         }
@@ -122,7 +124,7 @@ class View
         // Only inject the Flames client engine when the active microservice has its own
         // compiled client build. Landing pages and server-only microservices that have no
         // Client/Resource/Build/Flames.js should be served as plain HTML.
-        if (file_exists(\Flames\Microservice::getPath() . 'Client/Resource/Build/Flames.js') === false) {
+        if (file_exists(\Flames\Microservice\Microservice::getPath() . 'Client/Resource/Build/Flames.js') === false) {
             return $html;
         }
 
@@ -132,7 +134,7 @@ class View
         }
 
         $hash = Kernel::VERSION;
-        $clientResource = (\Flames\Microservice::getPath() . 'Client/Resource/Build/Flames.js');
+        $clientResource = (\Flames\Microservice\Microservice::getPath() . 'Client/Resource/Build/Flames.js');
         if (file_exists($clientResource) === true) {
             $hash .= ('.' . filemtime($clientResource));
         }

@@ -1,19 +1,27 @@
 <?php
+declare(strict_types=1);
+
 
 namespace Flames;
 
 use Flames\Collection\Arr;
-use Flames\Controller\Response;
+use Flames\Framework\Controller\Response;
 use Flames\Env\Env;
 use Flames\Framework\Boot;
 use Flames\Framework\Cache;
-use Flames\Kernel\Route;
+use Flames\Framework\Event;
+use Flames\Framework\Router;
+use Flames\Interfaces\Event\Route as RouteContract;
+use Flames\Framework\Connection;
+use Flames\Framework\Header;
+use Flames\Framework\Controller\RequestMount;
 use Flames\Reflection\Reflection;
 use Flames\Reflection\ReflectionClass;
 use Flames\Router\Client;
 
 use Flames\Async\Async\Service;
 use Flames\Autoload\Autoload;
+use Flames\Microservice\Microservice;
 /**
  * Class Kernel
  *
@@ -25,17 +33,16 @@ final class Kernel
 {
     const VERSION = '1.0.0';
 
-    public static $fuckzzz = 123;
     public static Errors\Run|null $errorHandler = null;
 
 
-    public static function boot()
+    public static function boot(bool $run = false): void
     {
         if (!self::setup()) {
             return;
         }
 
-        Boot::run();
+        Boot::register($run);
     }
 
     public static function setup(): bool
@@ -276,9 +283,9 @@ final class Kernel
             }
         }
 
-        self::$defaultRouter = Event::dispatch('Route', 'onRoute', new Router());
-        if (self::$defaultRouter !== null) {
-            $match = self::$defaultRouter->getMatch();
+        Event::dispatch(RouteContract::class, 'Route', 'onRoute');
+        if (Router::hasRoutes()) {
+            $match = Router::getMatch();
             if ($match === null) {
                 return false;
             }
@@ -297,19 +304,14 @@ final class Kernel
      */
     protected static function dispatchRoute($routeData) : bool
     {
-        $requestData = Route::mountRequestData($routeData, Connection::getIp());
+        $requestData = RequestMount::mountRequestData($routeData, Connection::getIp());
         $requestDataAllow = Event::dispatch('Route', 'onMatch', $requestData);
         if ($requestDataAllow === false) {
             return false;
         }
 
         $controller = new $routeData->controller();
-        $response = $controller->{$routeData->delegate}($requestData);
-
-        if (($response instanceof Response) === false) {
-            $response = new Response($response);
-        }
-
+        $response = Response::from($controller->onRequest($requestData));
         $output = $response->output;
 
         $_output = Event::dispatch('Output', 'onOutput', $requestData, $output);
@@ -317,7 +319,9 @@ final class Kernel
             $output = (string)$_output;
         }
 
-        self::sendHeaders($response->headers, $response->code);
+        Header::set('Code', $response->code);
+        Header::set('Content-Type', $response->contentType);
+        Header::send();
         if (str_starts_with($output, '{"flames.redirect":') === true) {
             if (\Flames\Forge\Cli::isCli() === false) {
                 $decode = json_decode($output);
@@ -422,16 +426,6 @@ final class Kernel
 
 //        $runTime = microtime(true) - constant('START_TIME');
 //        dump($runTime);
-    }
-
-    /**
-     * Returns the default router instance.
-     *
-     * @return Router|null The default router instance, or null if it has not been set.
-     */
-    public static function getDefaultRouter() : Router|null
-    {
-        return self::$defaultRouter;
     }
 
     protected static function getRootPath()
