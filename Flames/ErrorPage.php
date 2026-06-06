@@ -12,7 +12,7 @@ namespace Flames;
 
 use Flames\Forge\Cli\Command\Build\App\StaticEx;
 use Flames\Framework\Header;
-use Flames\Framework\Router;
+use Flames\Router;
 
 /**
  * Class ErrorPage

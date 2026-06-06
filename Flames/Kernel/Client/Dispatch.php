@@ -19,7 +19,7 @@ use Flames\Kernel\Client\Dispatch\Native;
 use Flames\Kernel\Client\Error;
 use Flames\Kernel\Client\Service\Keyboard;
 use Flames\Framework\Controller\RequestMount;
-use Flames\Framework\Router;
+use Flames\Router;
 
 /**
  * @internal
@@ -206,17 +206,17 @@ final class Dispatch
         return false;
     }
 
-    protected static function dispatchRoute($routeData, $route) : bool
+    protected static function dispatchRoute(\Flames\Router\RouteMatch $match, object $route) : bool
     {
-        $requestData = RequestMount::mountRequestData($routeData, Connection::getIp());
+        $requestData = RequestMount::mountRequestData($match, Connection::getIp());
 
         $requestDataAllow = $route->onMatch($requestData);
         if ($requestDataAllow === false) {
             return false;
         }
 
-        $controller = new $routeData->controller();
-        self::$instances[$routeData->controller] = $controller;
+        $controller = new $match->controller();
+        self::$instances[$match->controller] = $controller;
         $controller->onRequest($requestData);
         return true;
     }

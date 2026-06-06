@@ -8,8 +8,10 @@ use Flames\Framework\Connection;
 use Flames\Framework\Controller\Response;
 use Flames\Framework\Event;
 use Flames\Framework\Header;
+use Flames\Interfaces\Event\Initialize as InitializeContract;
 use Flames\Interfaces\Event\Route as RouteContract;
 use Flames\Framework\Controller\RequestMount;
+use Flames\Router;
 
 /**
  * @internal
@@ -23,6 +25,10 @@ class Dispatch
 
     public static function dispatch(): bool
     {
+        if (Event::dispatch(InitializeContract::class, 'Initialize', 'onInitialize') === false) {
+            return false;
+        }
+
         Event::dispatch(RouteContract::class, 'Route', 'onRoute');
 
         if (Router::hasRoutes() === false) {
@@ -37,15 +43,15 @@ class Dispatch
         return self::dispatchRoute($match);
     }
 
-    protected static function dispatchRoute(object $routeData): bool
+    protected static function dispatchRoute(\Flames\Router\RouteMatch $match): bool
     {
-        $requestData = RequestMount::mountRequestData($routeData, Connection::getIp());
-        $requestDataAllow = Event::dispatch('Route', 'onMatch', $requestData);
+        $requestData = RequestMount::mountRequestData($match, Connection::getIp());
+        $requestDataAllow = Event::dispatch(RouteContract::class, 'Route', 'onMatch', $requestData);
         if ($requestDataAllow === false) {
             return false;
         }
 
-        $controller = new $routeData->controller();
+        $controller = new $match->controller();
         $response = Response::from($controller->onRequest($requestData));
         $output = $response->output;
 

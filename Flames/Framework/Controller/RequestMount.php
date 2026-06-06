@@ -4,161 +4,113 @@ declare(strict_types=1);
 
 namespace Flames\Framework\Controller;
 
-use Flames\Collection\Arr;
-use Flames\Forge\Cli;
+use Flames\Router\RouteMatch;
 
-/**
- * @internal
- */
 final class RequestMount
 {
-    public static function mountRequestData(Arr $routeData, string|null $ip = null): RequestData
+    public static function mountRequestData(RouteMatch $match, ?string $ip = null): RequestData
     {
-        $isCLI       = (Cli::isCli() === true);
-        $method      = null;
-        $headers     = null;
-        $contentType = null;
-        $multipart   = [];
-        $request     = [];
-        $urlEncoded  = [];
-        $json        = null;
-        $queryString = null;
-
-//        if (\Flames\Kernel::MODULE === 'SERVER') {
-            if ($isCLI === false) {
-                $method = $_SERVER['REQUEST_METHOD'];
-                $headers = (function_exists('getallheaders') ? getallheaders() : []);
-                $contentType = null;
-                if (isset($headers['Content-Type']) === true) {
-                    $contentType = $headers['Content-Type'];
-                } elseif (isset($headers['content-type']) === true) {
-                    $contentType = $headers['content-type'];
-                }
-
-                $splitUri = explode('?', $_SERVER['REQUEST_URI']);
-                if (count($splitUri) >= 2) {
-                    $queryString = [];
-                    parse_str($splitUri[1], $queryString);
-                    foreach ($queryString as $key => $value) {
-                        $request[$key] = $value;
-                    }
-                }
-
-                if ($contentType !== null && str_starts_with($contentType, 'multipart/form-data')) {
-                    if ($method === 'GET') {
-                        parse_raw_http_request($multipart);
-                    } else {
-                        foreach ($_POST as $key => $value) {
-                            $multipart[$key] = $value;
-                        }
-                    }
-                    foreach ($multipart as $key => $value) {
-                        $request[$key] = $value;
-                    }
-                }
-
-                if ($contentType !== null && str_starts_with($contentType, 'application/x-www-form-urlencoded')) {
-                    if ($method === 'GET') {
-                        $input = file_get_contents('php://input');
-                        parse_str($input, $urlEncoded);
-                    } else {
-                        foreach ($_POST as $key => $value) {
-                            $urlEncoded[$key] = $value;
-                        }
-                    }
-
-                    foreach ($_POST as $key => $value) {
-                        $request[$key] = $value;
-                    }
-                }
-
-                if ($method !== 'GET') {
-                    foreach ($_POST as $key => $value) {
-                        $request[$key] = $value;
-                    }
-                }
-
-                if ($contentType !== null && str_starts_with($contentType, 'application/json')) {
-                    $json = @json_decode(file_get_contents('php://input'));
-                    if ($json !== false) {
-                        $json = (array) $json;
-                        foreach ($json as $key => $value) {
-                            $request[$key] = $value;
-                        }
-                        $json = Arr($json);
-                    } else {
-                        $json = null;
-                    }
-                }
-
-                foreach ($routeData->parameters as $key => $value) {
-                    $request[$key] = $value;
-                }
-
-                return new RequestData(
-                    $method,
-                    explode('?', $_SERVER['REQUEST_URI'])[0],
-                    Arr($queryString),
-                    $routeData->parameters,
-                    Arr($multipart),
-                    Arr($urlEncoded),
-                    $json,
-                    Arr($request),
-                    Arr($headers),
-                    $_SERVER['SERVER_NAME'],
-                    $_SERVER['SERVER_PORT'],
-                    $ip,
-                    null,
-                    null
-                );
-            }
-
+        if (\Flames\Forge\Cli::isCli()) {
             return new RequestData(
                 'CLI',
                 null,
-                Arr($queryString),
-                $routeData->parameters,
-                Arr($multipart),
-                Arr($urlEncoded),
-                $json,
-                Arr($request),
-                Arr($headers),
+                [],
+                $match->parameters,
+                [],
+                [],
+                null,
+                [],
+                [],
                 null,
                 null,
-                null,
-                $routeData->command,
-                null
+                $ip,
+                $match->command,
             );
-//        }
+        }
 
-//        $splitUri = explode('?', $_SERVER['REQUEST_URI']);
-//        if (count($splitUri) >= 2) {
-//            $queryString = [];
-//            parse_str($splitUri[1], $queryString);
-//            foreach ($queryString as $key => $value) {
-//                $request[$key] = $value;
-//            }
-//        }
-//
-//        foreach ($routeData->parameters as $key => $value) {
-//            $request[$key] = $value;
-//        }
-//
-//        return new RequestData(
-//            'GET',
-//            explode('?', $_SERVER['REQUEST_URI'])[0],
-//            Arr($queryString),
-//            $routeData->parameters,
-//            Arr(),
-//            Arr(),
-//            $json,
-//            Arr($request),
-//            Arr(),
-//            null,
-//            null,
-//            null,
-//            null,
-//            Arr(\Flames\Kernel::__getData())
-//        );
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = ($pos = strpos($uri, '?')) !== false ? substr($uri, 0, $pos) : $uri;
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
+
+        $queries = [];
+        if ($pos !== false) {
+            parse_str(substr($uri, $pos + 1), $queries);
+        }
+
+        $request = $queries;
+        $multipart = [];
+        $urlEncoded = [];
+        $json = null;
+
+        if (str_starts_with($contentType, 'multipart/form-data')) {
+            $multipart = $_POST;
+            $request = array_merge($request, $_POST);
+        } elseif (str_starts_with($contentType, 'application/x-www-form-urlencoded')) {
+            if ($method === 'GET') {
+                parse_str(file_get_contents('php://input') ?: '', $urlEncoded);
+            } else {
+                $urlEncoded = $_POST;
+            }
+            $request = array_merge($request, $urlEncoded);
+        } elseif ($method !== 'GET' && $_POST !== []) {
+            $request = array_merge($request, $_POST);
+        }
+
+        if (str_starts_with($contentType, 'application/json')) {
+            $decoded = json_decode(file_get_contents('php://input') ?: 'null', true);
+            if (is_array($decoded)) {
+                $json = $decoded;
+                $request = array_merge($request, $decoded);
+            }
+        }
+
+        if ($match->parameters !== []) {
+            $request = array_merge($request, $match->parameters);
+        }
+
+        return new RequestData(
+            $method,
+            $path,
+            $queries,
+            $match->parameters,
+            $multipart,
+            $urlEncoded,
+            $json,
+            $request,
+            self::headers(),
+            $_SERVER['SERVER_NAME'] ?? null,
+            isset($_SERVER['SERVER_PORT']) ? (int) $_SERVER['SERVER_PORT'] : null,
+            $ip,
+            null,
+        );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function headers(): array
+    {
+        if (\function_exists('getallheaders')) {
+            $headers = getallheaders();
+
+            return is_array($headers) ? $headers : [];
+        }
+
+        $headers = [];
+        foreach ($_SERVER as $key => $value) {
+            if (!is_string($key) || !str_starts_with($key, 'HTTP_')) {
+                continue;
+            }
+
+            $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))));
+            $headers[$name] = (string) $value;
+        }
+
+        if (isset($_SERVER['CONTENT_TYPE'])) {
+            $headers['Content-Type'] = (string) $_SERVER['CONTENT_TYPE'];
+        }
+
+        return $headers;
     }
 }

@@ -6,73 +6,50 @@ namespace Flames\Framework\Controller;
 
 use Flames\Collection\Arr;
 
-class Response
+final class Response
 {
-    protected mixed $data;
-    protected int $statusCode;
-    protected string $contentType;
-    protected ?string $output = null;
+    private const int JSON_FLAGS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+
+    public readonly string $output;
+    public readonly int $statusCode;
+    public readonly string $contentType;
 
     public function __construct(
         mixed $data = null,
         int $statusCode = 200,
-        ?string $contentType = null
+        ?string $contentType = null,
     ) {
-        $this->data        = $data;
-        $this->statusCode  = $statusCode;
+        $this->statusCode = $statusCode;
         $this->contentType = $contentType ?? self::resolveContentType($data);
+        $this->output = self::encode($data);
     }
 
     public static function from(mixed $result): self
     {
-        if ($result instanceof self) {
-            return $result;
-        }
-
-        if (is_string($result) || $result instanceof Arr || is_array($result) || is_object($result) || $result === null) {
-            return new self($result);
-        }
-
-        return new self((string) $result);
+        return $result instanceof self ? $result : new self($result);
     }
 
-    protected static function resolveContentType(mixed $data): string
+    private static function resolveContentType(mixed $data): string
     {
-        if ($data instanceof Arr || is_array($data) || is_object($data)) {
-            return 'application/json';
-        }
+        return match (true) {
+            is_array($data), $data instanceof Arr, is_object($data) => 'application/json',
+            default => 'text/html',
+        };
+    }
 
-        return 'text/html';
+    private static function encode(mixed $data): string
+    {
+        return match (true) {
+            $data === null => '',
+            is_string($data) => $data,
+            $data instanceof Arr => (string) json_encode($data->toArray(), self::JSON_FLAGS),
+            is_array($data), is_object($data) => (string) json_encode($data, self::JSON_FLAGS),
+            default => (string) $data,
+        };
     }
 
     public function getOutput(): string
     {
-        if ($this->output !== null) {
-            return $this->output;
-        }
-
-        if ($this->data === null) {
-            $this->output = '';
-            return $this->output;
-        }
-
-        if (is_string($this->data)) {
-            $this->output = $this->data;
-            return $this->output;
-        }
-
-        if ($this->data instanceof Arr) {
-            $this->output = json_encode($this->data->toArray(), JSON_UNESCAPED_UNICODE);
-            return $this->output;
-        }
-
-        if (is_array($this->data)) {
-            $this->output = json_encode($this->data, JSON_UNESCAPED_UNICODE);
-            return $this->output;
-        }
-
-        $this->output = json_encode($this->data, JSON_UNESCAPED_UNICODE);
-
         return $this->output;
     }
 
@@ -89,12 +66,10 @@ class Response
     public function __get(string $key): mixed
     {
         return match (strtolower($key)) {
-            'output'      => $this->getOutput(),
-            'code'        => $this->statusCode,
-            'statuscode'  => $this->statusCode,
-            'contenttype' => $this->contentType,
-            'data'        => $this->data,
-            default       => null,
+            'output' => $this->output,
+            'code', 'statuscode' => $this->statusCode,
+            'contenttype', 'content-type' => $this->contentType,
+            default => null,
         };
     }
 }

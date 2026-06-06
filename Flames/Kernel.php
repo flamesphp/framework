@@ -10,15 +10,14 @@ use Flames\Env\Env;
 use Flames\Framework\Boot;
 use Flames\Framework\Cache;
 use Flames\Framework\Event;
-use Flames\Framework\Router;
+use Flames\Router;
+use Flames\Interfaces\Event\Initialize as InitializeContract;
 use Flames\Interfaces\Event\Route as RouteContract;
 use Flames\Framework\Connection;
 use Flames\Framework\Header;
 use Flames\Framework\Controller\RequestMount;
 use Flames\Reflection\Reflection;
 use Flames\Reflection\ReflectionClass;
-use Flames\Router\Client;
-
 use Flames\Async\Async\Service;
 use Flames\Autoload\Autoload;
 use Flames\Microservice\Microservice;
@@ -254,246 +253,240 @@ final class Kernel
 //        }
 //    }
 
-    protected static function setDate(): void
-    {
-        $timezone = Env::get('DATE_TIMEZONE');
-        if ($timezone !== null && $timezone !== '') {
-            \date_default_timezone_set($timezone);
-            return;
-        }
-        \date_default_timezone_set('UTC');
-    }
-
-    /**
-     * Dispatches events for the application.
-     *
-     * @return bool Returns true if the events were successfully dispatched, false otherwise.
-     */
-    protected static function dispatchEvents() : bool
-    {
-        Header::set('X-Powered-By', 'Flames');
-
-        if (Event::dispatch('Initialize', 'onInitialize') === false) {
-            return false;
-        }
-
-        if (\Flames\Forge\Cli::isCli() === false && str_starts_with(@$_SERVER['REQUEST_URI'], '/flames')) {
-            if (Client::run(@$_SERVER['REQUEST_URI']) !== false) {
-                return true;
-            }
-        }
-
-        Event::dispatch(RouteContract::class, 'Route', 'onRoute');
-        if (Router::hasRoutes()) {
-            $match = Router::getMatch();
-            if ($match === null) {
-                return false;
-            }
-
-            return self::dispatchRoute($match);
-        }
-
-        return false;
-    }
-
-    /**
-     * Dispatches the route and executes the corresponding controller action.
-     *
-     * @param object $routeData The data of the matched route.
-     * @return bool Whether the route dispatching was successful or not.
-     */
-    protected static function dispatchRoute($routeData) : bool
-    {
-        $requestData = RequestMount::mountRequestData($routeData, Connection::getIp());
-        $requestDataAllow = Event::dispatch('Route', 'onMatch', $requestData);
-        if ($requestDataAllow === false) {
-            return false;
-        }
-
-        $controller = new $routeData->controller();
-        $response = Response::from($controller->onRequest($requestData));
-        $output = $response->output;
-
-        $_output = Event::dispatch('Output', 'onOutput', $requestData, $output);
-        if ($_output !== null) {
-            $output = (string)$_output;
-        }
-
-        Header::set('Code', $response->code);
-        Header::set('Content-Type', $response->contentType);
-        Header::send();
-        if (str_starts_with($output, '{"flames.redirect":') === true) {
-            if (\Flames\Forge\Cli::isCli() === false) {
-                $decode = json_decode($output);
-                header('Location: ' . $decode->{"flames.redirect"});
-                exit;
-            } else { // if autobuild
-                // TODO: transform page in html redirect on static build
-            }
-        }
-        echo $output;
-
-        return true;
-    }
-
-    /**
-     * Dispatches the command line interface (CLI)
-     *
-     * @return bool|null
-     */
-    protected static function dispatchCLI() : bool|null
-    {
-        $system = new \Flames\Forge\Cli\System();
-        return $system->run();
-    }
-
-    /**
-     * Renders the requested file directly to the output buffer.
-     *
-     * @return bool Indicates whether the file was successfully rendered or not.
-     */
-    protected static function renderDirectFile() : bool
-    {
-        $uri = explode('?', @$_SERVER['REQUEST_URI'])[0];
-
-        if (str_starts_with($uri, '/') === true) {
-            $uri = substr($uri, 1);
-        }
-        if (str_contains($uri, '\\') === true) {
-            $uri = str_replace('\\', '/', $uri);
-        }
-        while (str_contains($uri, '../') === true) {
-            $uri = str_replace('../', '', $uri);
-        }
-        while (str_contains($uri, '//') === true) {
-            $uri = str_replace('//', '/', $uri);
-        }
-
-        $path = (Microservice::getPath() . 'Client/Public/' . $uri);
-
-        // Fall back to the default App public directory so microservices can
-        // share packages (material-kit-pro, sweetalert, etc.) without copying them.
-        if ((file_exists($path) === false || is_dir($path) === true) && Microservice::isDefault() === false) {
-            $path = (APP_PATH . 'Client/Public/' . $uri);
-        }
-
-        if (file_exists($path) === false || is_dir($path) === true) {
-            return false;
-        }
-        
-        header('Content-Type: ' . mime_content_type($path));
-
-        $fileStream = fopen($path, 'r');
-        while(!feof($fileStream)) {
-            $buffer = fgets($fileStream, 128000); // 128 kb
-            echo $buffer;
-        }
-        fclose($fileStream);
-
-        return true;
-    }
-
-    /**
-     * Sets the HTTP headers for the response.
-     *
-     * @param Arr|null $headers An associative array of header names and values. If null, no additional headers will be set.
-     * @param int $code The HTTP status code to set.
-     * @return void
-     */
-    protected static function sendHeaders(Arr|null $headers, int $code) : void
-    {
-        Header::set('Code', $code);
-
-        if ($headers !== null) {
-            foreach ($headers as $key => $value) {
-                Header::set($key, $value);
-            }
-        }
-
-        Header::send();
-    }
-
-    /**
-     * Handles the shutdown of the application.
-     *
-     * @return void
-     */
-    public static function shutdown() : void
-    {
-        if (\Flames\Forge\Cli::isCli() === true && \Flames\Forge\Cli\Command\Coroutine::isCoroutineRunning() === true) {
-            \Flames\Forge\Cli\Command\Coroutine::errorHandler();
-        }
-
-//        $runTime = microtime(true) - constant('START_TIME');
-//        dump($runTime);
-    }
-
-    protected static function getRootPath()
-    {
-        $path = (realpath(__DIR__ . '/../../') . '/');
-        var_dump($path);
-        exit;
-
-        define('FLAMES_PATH', $path . 'Flames/');
-
-        if (str_ends_with(str_replace('\\', '/', $path), 'vendor/flamesphp/framework/') === true) {
-            define('FLAMES_COMPOSER', true);
-
-            /* Resolve sibling packages under vendor/flamesphp/ */
-            $collectionPath = realpath($path . '../collection') . '/Flames/';
-            define('COLLECTION_PATH', $collectionPath);
-
-            $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
-            define('DUMPPER_PATH', $dumpperPath);
-
-            $forgePath = realpath($path . '../forge') . '/Flames/';
-            define('FORGE_PATH', $forgePath);
-
-            $dockerPath = realpath($path . '../docker') . '/Flames/';
-            define('DOCKER_PATH', $dockerPath);
-
-            $libraryPath = realpath($path . '../composer') . '/Flames/';
-            define('LIBRARY_PATH', $libraryPath);
-
-            $ormPath = realpath($path . '../orm') . '/';
-            define('ORM_PATH', $ormPath);
-
-            $datePath = realpath($path . '../date') . '/';
-            define('DATE_PATH', $datePath);
-
-            $meshPath = realpath($path . '../mesh') . '/';
-            define('MESH_PATH', $meshPath);
-
-            return (realpath($path . '../../../') . '/');
-        } else {
-            define('FLAMES_COMPOSER', false);
-
-            /* Non-Composer layout: sibling packages live alongside the framework directory */
-            $collectionPath = realpath($path . '../collection') . '/Flames/';
-            define('COLLECTION_PATH', $collectionPath !== '/Flames/' ? $collectionPath : $path . 'Collection/');
-
-            $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
-            define('DUMPPER_PATH', $dumpperPath !== '/Flames/' ? $dumpperPath : ($path . 'Flames/'));
-
-            $forgePath = realpath($path . '../forge') . '/Flames/';
-            define('FORGE_PATH', $forgePath !== '/Flames/' ? $forgePath : ($path . 'Forge/'));
-
-            $dockerPath = realpath($path . '../docker') . '/Flames/';
-            define('DOCKER_PATH', $dockerPath !== '/Flames/' ? $dockerPath : ($path . 'Docker/'));
-
-            $libraryPath = realpath($path . '../composer') . '/Flames/';
-            define('LIBRARY_PATH', $libraryPath !== '/Flames/' ? $libraryPath : ($path . 'Library/'));
-
-            $ormPath = realpath($path . '../orm') . '/';
-            define('ORM_PATH', $ormPath !== '/' ? $ormPath : ($path . 'Orm/'));
-
-            $datePath = realpath($path . '../date') . '/';
-            define('DATE_PATH', $datePath !== '/' ? $datePath : ($path . 'Date/'));
-
-            $meshPath = realpath($path . '../mesh') . '/';
-            define('MESH_PATH', $meshPath !== '/' ? $meshPath : ($path . 'Mesh/'));
-
-            return $path;
-        }
-    }
+//    protected static function setDate(): void
+//    {
+//        $timezone = Env::get('DATE_TIMEZONE');
+//        if ($timezone !== null && $timezone !== '') {
+//            \date_default_timezone_set($timezone);
+//            return;
+//        }
+//        \date_default_timezone_set('UTC');
+//    }
+//
+//    /**
+//     * Dispatches events for the application.
+//     *
+//     * @return bool Returns true if the events were successfully dispatched, false otherwise.
+//     */
+//    protected static function dispatchEvents() : bool
+//    {
+//        Header::set('X-Powered-By', 'Flames');
+//
+//        if (Event::dispatch(InitializeContract::class, 'Initialize', 'onInitialize') === false) {
+//            return false;
+//        }
+//
+//        Event::dispatch(RouteContract::class, 'Route', 'onRoute');
+//        if (Router::hasRoutes()) {
+//            $match = Router::getMatch();
+//            if ($match === null) {
+//                return false;
+//            }
+//
+//            return self::dispatchRoute($match);
+//        }
+//
+//        return false;
+//    }
+//
+//    /**
+//     * Dispatches the route and executes the corresponding controller action.
+//     *
+//     * @param object $routeData The data of the matched route.
+//     * @return bool Whether the route dispatching was successful or not.
+//     */
+//    protected static function dispatchRoute(\Flames\Router\RouteMatch $match) : bool
+//    {
+//        $requestData = RequestMount::mountRequestData($match, Connection::getIp());
+//        $requestDataAllow = Event::dispatch(RouteContract::class, 'Route', 'onMatch', $requestData);
+//        if ($requestDataAllow === false) {
+//            return false;
+//        }
+//
+//        $controller = new $match->controller();
+//        $response = Response::from($controller->onRequest($requestData));
+//        $output = $response->output;
+//
+//        $_output = Event::dispatch('Output', 'onOutput', $requestData, $output);
+//        if ($_output !== null) {
+//            $output = (string)$_output;
+//        }
+//
+//        Header::set('Code', $response->code);
+//        Header::set('Content-Type', $response->contentType);
+//        Header::send();
+//        if (str_starts_with($output, '{"flames.redirect":') === true) {
+//            if (\Flames\Forge\Cli::isCli() === false) {
+//                $decode = json_decode($output);
+//                header('Location: ' . $decode->{"flames.redirect"});
+//                exit;
+//            } else { // if autobuild
+//                // TODO: transform page in html redirect on static build
+//            }
+//        }
+//        echo $output;
+//
+//        return true;
+//    }
+//
+//    /**
+//     * Dispatches the command line interface (CLI)
+//     *
+//     * @return bool|null
+//     */
+//    protected static function dispatchCLI() : bool|null
+//    {
+//        $system = new \Flames\Forge\Cli\System();
+//        return $system->run();
+//    }
+//
+//    /**
+//     * Renders the requested file directly to the output buffer.
+//     *
+//     * @return bool Indicates whether the file was successfully rendered or not.
+//     */
+//    protected static function renderDirectFile() : bool
+//    {
+//        $uri = explode('?', @$_SERVER['REQUEST_URI'])[0];
+//
+//        if (str_starts_with($uri, '/') === true) {
+//            $uri = substr($uri, 1);
+//        }
+//        if (str_contains($uri, '\\') === true) {
+//            $uri = str_replace('\\', '/', $uri);
+//        }
+//        while (str_contains($uri, '../') === true) {
+//            $uri = str_replace('../', '', $uri);
+//        }
+//        while (str_contains($uri, '//') === true) {
+//            $uri = str_replace('//', '/', $uri);
+//        }
+//
+//        $path = (Microservice::getPath() . 'Client/Public/' . $uri);
+//
+//        // Fall back to the default App public directory so microservices can
+//        // share packages (material-kit-pro, sweetalert, etc.) without copying them.
+//        if ((file_exists($path) === false || is_dir($path) === true) && Microservice::isDefault() === false) {
+//            $path = (APP_PATH . 'Client/Public/' . $uri);
+//        }
+//
+//        if (file_exists($path) === false || is_dir($path) === true) {
+//            return false;
+//        }
+//
+//        header('Content-Type: ' . mime_content_type($path));
+//
+//        $fileStream = fopen($path, 'r');
+//        while(!feof($fileStream)) {
+//            $buffer = fgets($fileStream, 128000); // 128 kb
+//            echo $buffer;
+//        }
+//        fclose($fileStream);
+//
+//        return true;
+//    }
+//
+//    /**
+//     * Sets the HTTP headers for the response.
+//     *
+//     * @param Arr|null $headers An associative array of header names and values. If null, no additional headers will be set.
+//     * @param int $code The HTTP status code to set.
+//     * @return void
+//     */
+//    protected static function sendHeaders(Arr|null $headers, int $code) : void
+//    {
+//        Header::set('Code', $code);
+//
+//        if ($headers !== null) {
+//            foreach ($headers as $key => $value) {
+//                Header::set($key, $value);
+//            }
+//        }
+//
+//        Header::send();
+//    }
+//
+//    /**
+//     * Handles the shutdown of the application.
+//     *
+//     * @return void
+//     */
+//    public static function shutdown() : void
+//    {
+//        if (\Flames\Forge\Cli::isCli() === true && \Flames\Forge\Cli\Command\Coroutine::isCoroutineRunning() === true) {
+//            \Flames\Forge\Cli\Command\Coroutine::errorHandler();
+//        }
+//
+////        $runTime = microtime(true) - constant('START_TIME');
+////        dump($runTime);
+//    }
+//
+//    protected static function getRootPath()
+//    {
+//        $path = (realpath(__DIR__ . '/../../') . '/');
+//        var_dump($path);
+//        exit;
+//
+//        define('FLAMES_PATH', $path . 'Flames/');
+//
+//        if (str_ends_with(str_replace('\\', '/', $path), 'vendor/flamesphp/framework/') === true) {
+//            define('FLAMES_COMPOSER', true);
+//
+//            /* Resolve sibling packages under vendor/flamesphp/ */
+//            $collectionPath = realpath($path . '../collection') . '/Flames/';
+//            define('COLLECTION_PATH', $collectionPath);
+//
+//            $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
+//            define('DUMPPER_PATH', $dumpperPath);
+//
+//            $forgePath = realpath($path . '../forge') . '/Flames/';
+//            define('FORGE_PATH', $forgePath);
+//
+//            $dockerPath = realpath($path . '../docker') . '/Flames/';
+//            define('DOCKER_PATH', $dockerPath);
+//
+//            $libraryPath = realpath($path . '../composer') . '/Flames/';
+//            define('LIBRARY_PATH', $libraryPath);
+//
+//            $ormPath = realpath($path . '../orm') . '/';
+//            define('ORM_PATH', $ormPath);
+//
+//            $datePath = realpath($path . '../date') . '/';
+//            define('DATE_PATH', $datePath);
+//
+//            $meshPath = realpath($path . '../mesh') . '/';
+//            define('MESH_PATH', $meshPath);
+//
+//            return (realpath($path . '../../../') . '/');
+//        } else {
+//            define('FLAMES_COMPOSER', false);
+//
+//            /* Non-Composer layout: sibling packages live alongside the framework directory */
+//            $collectionPath = realpath($path . '../collection') . '/Flames/';
+//            define('COLLECTION_PATH', $collectionPath !== '/Flames/' ? $collectionPath : $path . 'Collection/');
+//
+//            $dumpperPath = realpath($path . '../dumpper') . '/Flames/';
+//            define('DUMPPER_PATH', $dumpperPath !== '/Flames/' ? $dumpperPath : ($path . 'Flames/'));
+//
+//            $forgePath = realpath($path . '../forge') . '/Flames/';
+//            define('FORGE_PATH', $forgePath !== '/Flames/' ? $forgePath : ($path . 'Forge/'));
+//
+//            $dockerPath = realpath($path . '../docker') . '/Flames/';
+//            define('DOCKER_PATH', $dockerPath !== '/Flames/' ? $dockerPath : ($path . 'Docker/'));
+//
+//            $libraryPath = realpath($path . '../composer') . '/Flames/';
+//            define('LIBRARY_PATH', $libraryPath !== '/Flames/' ? $libraryPath : ($path . 'Library/'));
+//
+//            $ormPath = realpath($path . '../orm') . '/';
+//            define('ORM_PATH', $ormPath !== '/' ? $ormPath : ($path . 'Orm/'));
+//
+//            $datePath = realpath($path . '../date') . '/';
+//            define('DATE_PATH', $datePath !== '/' ? $datePath : ($path . 'Date/'));
+//
+//            $meshPath = realpath($path . '../mesh') . '/';
+//            define('MESH_PATH', $meshPath !== '/' ? $meshPath : ($path . 'Mesh/'));
+//
+//            return $path;
+//        }
+//    }
 }
