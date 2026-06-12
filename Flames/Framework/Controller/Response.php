@@ -10,6 +10,7 @@ final class Response
 {
     private const int JSON_FLAGS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
+    public readonly mixed $data;
     public readonly string $output;
     public readonly int $statusCode;
     public readonly string $contentType;
@@ -19,6 +20,7 @@ final class Response
         int $statusCode = 200,
         ?string $contentType = null,
     ) {
+        $this->data = $data;
         $this->statusCode = $statusCode;
         $this->contentType = $contentType ?? self::resolveContentType($data);
         $this->output = self::encode($data);
@@ -27,6 +29,19 @@ final class Response
     public static function from(mixed $result): self
     {
         return $result instanceof self ? $result : new self($result);
+    }
+
+    public function getViewData(): array|Arr|null
+    {
+        if ($this->data instanceof Arr) {
+            return $this->data;
+        }
+
+        if (is_array($this->data)) {
+            return $this->data;
+        }
+
+        return null;
     }
 
     private static function resolveContentType(mixed $data): string

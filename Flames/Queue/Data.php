@@ -64,13 +64,13 @@ class Data
         foreach($attributes as $attribute) {
             $attributeName = $attribute->getName();
 
-            if ($attributeName === \Flames\Orm\Database::class) {
+            if ($attributeName === \Flames\Orm\Attribute\Database::class) {
                 $arguments = $attribute->getArguments();
                 if (isset($arguments['name']))
                     $data->database = $arguments['name'];
             }
 
-            elseif ($attributeName === \Flames\Orm\Table::class) {
+            elseif ($attributeName === \Flames\Orm\Attribute\Table::class) {
                 $arguments = $attribute->getArguments();
                 if (isset($arguments['name']))
                     $data->table = $arguments['name'];
