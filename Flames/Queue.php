@@ -26,7 +26,7 @@ abstract class Queue
 
         $table = self::$_data[$class]->table;
 
-        $statment = $connection->prepare('INSERT INTO `' . $table . '` (`data`, `date`) VALUES (:data, \'' . ((new DateTime())->format('Y-m-d H:i:s')) . '\')');
+        $statment = $connection->prepare('INSERT INTO `' . $table . '` (`data`, `date`) VALUES (:data, \'' . (new DateTime()->format('Y-m-d H:i:s')) . '\')');
         $statment->execute(['data' => serialize($data)]);
     }
 
@@ -110,9 +110,7 @@ abstract class Queue
             self::$_connection[$class] = false;
 
             $database = self::$_data[$class]->database;
-            if ($database === null) {
-                $database = sha1($config);
-            }
+            $database ??= sha1($config);
 
             $driver = Database\Driver::getByConfigAndDatabase(
                 Database\DataFactory::getConfigByDatabase($database),

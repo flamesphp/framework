@@ -73,15 +73,15 @@ final class AutoLoad
             return;
         }
 
-        /* Case Flames\Library — loaded from the standalone flamesphp/composer package (scoped composer) */
-        if (str_starts_with($name, 'Flames\\Library\\')) {
-            static $libraryBoot = false;
-            if ($libraryBoot === false) {
-                $libraryBoot = true;
-                require LIBRARY_PATH . 'Library/AutoLoad.php';
-                \Flames\Library\AutoLoad::register();
+        /* Case Flames\Composer — loaded from the standalone flamesphp/composer package (scoped composer) */
+        if (str_starts_with($name, 'Flames\\Composer\\')) {
+            static $composerBoot = false;
+            if ($composerBoot === false) {
+                $composerBoot = true;
+                require FLAMES_PATH . 'composer/Flames/Composer/AutoLoad.php';
+                \Flames\Composer\AutoLoad::register();
             }
-            \Flames\Library\AutoLoad::load($name);
+            \Flames\Composer\AutoLoad::load($name);
             return;
         }
 

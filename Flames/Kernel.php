@@ -30,7 +30,7 @@ use Flames\Microservice\Microservice;
  */
 final class Kernel
 {
-    public const VERSION = '1.0.0';
+    public const string VERSION = '1.0.0';
 
     public static Errors\Run|null $errorHandler = null;
 

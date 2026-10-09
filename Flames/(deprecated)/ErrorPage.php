@@ -88,7 +88,7 @@ final class ErrorPage
                 if ($match === null) {
                     return false;
                 }
-                $responseData = (new StaticEx())->getResponse($match);
+                $responseData = new StaticEx()->getResponse($match);
                 return $responseData->output;
             }
         }

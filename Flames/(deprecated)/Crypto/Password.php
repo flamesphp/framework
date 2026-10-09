@@ -10,9 +10,7 @@ class Password
 {
     public static function toHash(string $password, string|null $key = null)
     {
-        if ($key === null) {
-            $key = sha1('FLAMES_DEFAULT_SALT_KEY');
-        }
+        $key ??= sha1('FLAMES_DEFAULT_SALT_KEY');
         $key = sha1(sha1($key) . '|' . sha1('FLAMES_INTERNAL_SALT_KEY'));
 
         $appToken    = Environment::get('APP_KEY');

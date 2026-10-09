@@ -12,11 +12,8 @@ use Flames\Js;
  */
 class Shadow
 {
-    protected $shadow = null;
-
-    public function __construct($shadow)
+    public function __construct(protected $shadow)
     {
-        $this->shadow = $shadow;
     }
 
     public function subquery(string $query): ?Element

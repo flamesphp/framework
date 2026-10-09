@@ -8,21 +8,6 @@ use Flames\Framework\Connection;
 
 final class RequestData
 {
-    public string $method;
-    public ?string $url;
-    public ?string $command;
-    public array $queries;
-    public array $uries;
-    public array $multipart;
-    public array $urlEncoded;
-    public ?array $json;
-    public array $request;
-    public array $headers;
-    public ?string $host;
-    public ?int $port;
-    public ?string $ip;
-    public ?array $data;
-
     /**
      * @param array<string, mixed> $queries
      * @param array<string, mixed> $uries
@@ -33,36 +18,8 @@ final class RequestData
      * @param array<string, mixed> $headers
      * @param array<string, mixed>|null $data
      */
-    public function __construct(
-        string $method,
-        ?string $url,
-        array $queries,
-        array $uries,
-        array $multipart,
-        array $urlEncoded,
-        ?array $json,
-        array $request,
-        array $headers,
-        ?string $host,
-        ?int $port,
-        ?string $ip,
-        ?string $command,
-        ?array $data = null,
-    ) {
-        $this->method = $method;
-        $this->url = $url;
-        $this->queries = $queries;
-        $this->uries = $uries;
-        $this->multipart = $multipart;
-        $this->urlEncoded = $urlEncoded;
-        $this->json = $json;
-        $this->request = $request;
-        $this->headers = $headers;
-        $this->host = $host;
-        $this->port = $port;
-        $this->ip = $ip;
-        $this->command = $command;
-        $this->data = $data;
+    public function __construct(public string $method, public ?string $url, public array $queries, public array $uries, public array $multipart, public array $urlEncoded, public ?array $json, public array $request, public array $headers, public ?string $host, public ?int $port, public ?string $ip, public ?string $command, public ?array $data = null)
+    {
     }
 
     public static function getBase(): self

@@ -11,7 +11,7 @@ use Flames\Collection\Arr;
  */
 class Data
 {
-    private const __VERSION__ = 1;
+    private const int __VERSION__ = 1;
 
     public static function mountData(string $class) : Arr
     {
@@ -65,15 +65,19 @@ class Data
             $attributeName = $attribute->getName();
 
             if ($attributeName === \Flames\Orm\Attribute\Database::class) {
-                $arguments = $attribute->getArguments();
-                if (isset($arguments['name']))
-                    $data->database = $arguments['name'];
+                /** @var \Flames\Orm\Attribute\Database $instance */
+                $instance = $attribute->newInstance();
+                if ($instance->name !== null) {
+                    $data->database = $instance->name;
+                }
             }
 
             elseif ($attributeName === \Flames\Orm\Attribute\Table::class) {
-                $arguments = $attribute->getArguments();
-                if (isset($arguments['name']))
-                    $data->table = $arguments['name'];
+                /** @var \Flames\Orm\Attribute\Table $instance */
+                $instance = $attribute->newInstance();
+                if ($instance->name !== null) {
+                    $data->table = $instance->name;
+                }
             }
 
             elseif ($attributeName === \Flames\Queue\Delay::class) {
@@ -94,9 +98,7 @@ class Data
                     $data->timelimit = (int)$arguments['timelimit'];
             }
         }
-        if ($data->table === null) {
-            $data->table = str_replace('\\', '_', strtolower(substr($class, 17)));
-        }
+        $data->table ??= str_replace('\\', '_', strtolower(substr($class, 17)));
 
         return $data;
     }

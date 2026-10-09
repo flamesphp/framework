@@ -14,7 +14,7 @@ class Clipboard
 
         try {
             $browser = mb_strtolower($browser, 'UTF-8');
-        } catch (\Exception|\Error $e) { $browser = strtolower($browser); }
+        } catch (\Exception|\Error) { $browser = strtolower($browser); }
 
 //        if ($browser === 'firefox') {
 //            self::copySecure($data);

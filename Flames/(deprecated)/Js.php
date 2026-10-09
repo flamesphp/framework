@@ -6,8 +6,8 @@ namespace Flames;
 
 use Exception;
 use App\App;
-use Vrzno;
 use Flames\Js\Window;
+use Flames\Surface\Surface\Js\Bridge;
 
 /**
  * Class Js
@@ -44,7 +44,7 @@ class Js
      *
      * @throws Exception If the method is called on the server module.
      */
-    public static function getWindow() : Window|Vrzno|null
+    public static function getWindow() : Window|Bridge|null
     {
         if (self::$window !== null) {
             return self::$window;
@@ -53,9 +53,7 @@ class Js
         if (App::MODULE === 'SERVER') {
             throw new Exception('Method only works on client.');
         } else {
-            if (self::$window === null) {
-                self::$window = new Vrzno();
-            }
+            self::$window ??= new Bridge();
             return self::$window;
         }
     }

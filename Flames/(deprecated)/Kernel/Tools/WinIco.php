@@ -9,11 +9,11 @@ namespace Flames\Kernel\Tools;
  */
 class WinIco
 {
-    var $_images = array();
-    var $_has_requirements = false;
+    public $_images = [];
+    public $_has_requirements = false;
 
-    function __construct( $file = false, $sizes = array() ) {
-        $required_functions = array(
+    public function __construct( $file = false, $sizes = [] ) {
+        $required_functions = [
             'getimagesize',
             'imagecreatefromstring',
             'imagecreatetruecolor',
@@ -24,7 +24,7 @@ class WinIco
             'imagesx',
             'imagesy',
             'imagecopyresampled',
-        );
+        ];
 
         foreach ( $required_functions as $function ) {
             if ( ! function_exists( $function ) ) {
@@ -40,7 +40,7 @@ class WinIco
             $this->add_image( $file, $sizes );
     }
 
-    function add_image( $file, $sizes = array() ) {
+    public function add_image( $file, $sizes = [] ) {
         if ( ! $this->_has_requirements )
             return false;
 
@@ -49,13 +49,13 @@ class WinIco
 
 
         if ( empty( $sizes ) )
-            $sizes = array( imagesx( $im ), imagesy( $im ) );
+            $sizes = [ imagesx( $im ), imagesy( $im ) ];
 
         if ( ! is_array( $sizes[0] ) )
-            $sizes = array( $sizes );
+            $sizes = [ $sizes ];
 
         foreach ( (array) $sizes as $size ) {
-            list( $width, $height ) = $size;
+            [$width, $height] = $size;
 
             $new_im = imagecreatetruecolor( $width, $height );
 
@@ -75,7 +75,7 @@ class WinIco
         return true;
     }
 
-    function save( $file ) {
+    public function save( $file ) {
         if ( ! $this->_has_requirements )
             return false;
 
@@ -95,7 +95,7 @@ class WinIco
         return true;
     }
 
-    function _get_ico_data() {
+    public function _get_ico_data() {
         if ( ! is_array( $this->_images ) || empty( $this->_images ) )
             return false;
 
@@ -121,14 +121,14 @@ class WinIco
         return $data;
     }
 
-    function _add_image_data( $im ) {
+    public function _add_image_data( $im ) {
         $width = imagesx( $im );
         $height = imagesy( $im );
 
 
-        $pixel_data = array();
+        $pixel_data = [];
 
-        $opacity_data = array();
+        $opacity_data = [];
         $current_opacity_val = 0;
 
         for ( $y = $height - 1; $y >= 0; $y-- ) {
@@ -177,19 +177,19 @@ class WinIco
             $data .= pack( 'N', $opacity );
 
 
-        $image = array(
+        $image = [
             'width'                => $width,
             'height'               => $height,
             'color_palette_colors' => 0,
             'bits_per_pixel'       => 32,
             'size'                 => $image_header_size + $color_mask_size + $opacity_mask_size,
             'data'                 => $data,
-        );
+        ];
 
         $this->_images[] = $image;
     }
 
-    function _load_image_file( $file ) {
+    public function _load_image_file( $file ) {
         if ( false === ( $size = getimagesize( $file ) ) )
             return false;
 

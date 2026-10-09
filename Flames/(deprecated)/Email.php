@@ -41,7 +41,7 @@ class Email
             try {
                 file_put_contents($basePath, '');
                 return $checkDns;
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 $mask = umask(0);
                 mkdir(ROOT_PATH . '.cache/sync/email/', 0777, true);
                 umask($mask);
@@ -74,7 +74,7 @@ class Email
                 return self::syncDisposableDomainsData($basePath, $disposableEmailUri);
             }
             return file($basePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return self::syncDisposableDomainsData($basePath, $disposableEmailUri);
         }
     }
@@ -85,7 +85,7 @@ class Email
         try {
             file_put_contents($basePath, $data);
             return file($basePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $mask = umask(0);
             mkdir(ROOT_PATH . '.cache/sync/email/', 0777, true);
             umask($mask);

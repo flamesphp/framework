@@ -10,7 +10,7 @@ use Flames\Kernel\Client\Dispatch\Native as DispatchNative;
 
 class Shell
 {
-    protected ?\Closure $delegate;
+    protected ?\Closure $delegate = null;
     protected ?string $output;
 
     protected bool $done = false;

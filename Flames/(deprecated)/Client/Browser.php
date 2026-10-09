@@ -10,7 +10,7 @@ class Browser
 {
     public static function getName(bool $includeVersion = false): string|Arr
     {
-        $userAgentParser = (new UserAgentParser())->parse();
+        $userAgentParser = new UserAgentParser()->parse();
 
         if ($includeVersion === true) {
             return Arr([
@@ -24,7 +24,7 @@ class Browser
 
     public static function getVersion()
     {
-        $userAgentParser = (new UserAgentParser())->parse();
+        $userAgentParser = new UserAgentParser()->parse();
         return $userAgentParser['browserVersion'];
     }
 

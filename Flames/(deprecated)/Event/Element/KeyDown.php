@@ -20,17 +20,14 @@ use Flames\Element;
  */
 class KeyDown
 {
-    protected Element|null $target = null;
-
     protected bool $ctrlKeyPressed = false;
     protected bool $altKeyPressed = false;
     protected bool $shiftKeyPressed = false;
     protected ?int $keyCode = null;
     protected ?string $key = null;
 
-    public function __construct(Element $target, $event)
+    public function __construct(protected Element $target, $event)
     {
-        $this->target = $target;
         $this->ctrlKeyPressed = (bool)$event->ctrlKey;
         $this->altKeyPressed = (bool)$event->altKey;
         $this->shiftKeyPressed = (bool)$event->shiftKey;
@@ -38,7 +35,7 @@ class KeyDown
 
         try {
             $keyLower = mb_strtolower($event->key);
-        } catch (\Exception|\Error $e) {
+        } catch (\Exception|\Error) {
             $keyLower = strtolower($event->key);
         }
 
@@ -78,13 +75,13 @@ class KeyDown
     {
         try {
             $_keyLower = mb_strtolower($key);
-        } catch (\Exception|\Error $e) {
+        } catch (\Exception|\Error) {
             $_keyLower = strtolower($key);
         }
 
         try {
             $keyLower = mb_strtolower($this->key);
-        } catch (\Exception|\Error $e) {
+        } catch (\Exception|\Error) {
             $keyLower = strtolower($this->key);
         }
 
@@ -130,7 +127,7 @@ class KeyDown
     {
         try {
             $combination = mb_strtolower($combination);
-        } catch (\Exception|\Error $e) {
+        } catch (\Exception|\Error) {
             $combination = strtolower($combination);
         }
 

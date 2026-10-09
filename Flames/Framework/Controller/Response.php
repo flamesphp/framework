@@ -6,24 +6,19 @@ namespace Flames\Framework\Controller;
 
 use Flames\Collection\Arr;
 
-final class Response
+final readonly class Response
 {
     private const int JSON_FLAGS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-
-    public readonly mixed $data;
-    public readonly string $output;
-    public readonly int $statusCode;
-    public readonly string $contentType;
+    public string $output;
+    public string $contentType;
 
     public function __construct(
-        mixed $data = null,
-        int $statusCode = 200,
+        public mixed $data = null,
+        public int $statusCode = 200,
         ?string $contentType = null,
     ) {
-        $this->data = $data;
-        $this->statusCode = $statusCode;
-        $this->contentType = $contentType ?? self::resolveContentType($data);
-        $this->output = self::encode($data);
+        $this->contentType = $contentType ?? self::resolveContentType($this->data);
+        $this->output = self::encode($this->data);
     }
 
     public static function from(mixed $result): self

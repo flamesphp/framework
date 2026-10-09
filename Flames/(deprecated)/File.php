@@ -27,7 +27,7 @@ class File
     {
         try  {
             return mime_content_type($path);
-        } catch (\Error $e) {
+        } catch (\Error) {
             return null;
         }
     }
@@ -37,7 +37,7 @@ class File
         $success = false;
         try {
             $success = file_put_contents($path, $contents);
-        } catch (\Exception $_) {}
+        } catch (\Exception) {}
 
         if ($success === false) {
             $dirPath = dirname($path);
@@ -66,7 +66,7 @@ class File
     {
         try {
             return unlink($path);
-        } catch (\Exception $_) {}
+        } catch (\Exception) {}
 
         if (file_exists($path) === false) {
             return true;
@@ -79,7 +79,7 @@ class File
     {
         try {
             return rename($oldPath, $newPath);
-        } catch (\Exception $_) {}
+        } catch (\Exception) {}
 
         if (file_exists($newPath) === true) {
             return true;
@@ -92,7 +92,7 @@ class File
     {
         try {
             return copy($fromPath, $toPath);
-        } catch (\Exception $_) {}
+        } catch (\Exception) {}
 
         if (file_exists($toPath) === true) {
             return true;

@@ -18,11 +18,9 @@ use Flames\Element\Shadow;
 class Tag
 {
     private $__shadow__ =  null;
-    private $__shadowNative__ =  null;
 
-    public function __construct($uid, $path = null)
+    public function __construct(private $__shadowNative__, $path = null)
     {
-        $this->__shadowNative__ = $uid;
         $this->__shadow__ = new Shadow($this->__shadowNative__);
     }
 

@@ -12,14 +12,8 @@ use Flames\Element;
  */
 class Focus
 {
-    protected Element|null $target = null;
-
-    protected bool $focus = false;
-
-    public function __construct(Element $target, bool $focus = false)
+    public function __construct(protected Element $target, protected bool $focus = false)
     {
-        $this->target = $target;
-        $this->focus = $focus;
     }
 
     public function __get(string $key) : mixed

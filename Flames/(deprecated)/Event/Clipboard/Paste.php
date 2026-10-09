@@ -25,13 +25,13 @@ class Paste
         if ($event->clipboardData !== null) {
             try {
                 $this->data = $event->clipboardData->getData('text/plain');
-            } catch (\Exception|\Error $e) {}
+            } catch (\Exception|\Error) {}
         } else {
             $window = Js::getWindow();
             if ($window->clipboardData !== null) {
                 try {
                     $this->data = $event->clipboardData->getData('text/plain');
-                } catch (\Exception|\Error $e) {}
+                } catch (\Exception|\Error) {}
             }
         }
     }

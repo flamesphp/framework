@@ -11,8 +11,8 @@ use Flames\Js;
  */
 final class Client
 {
-    public const VERSION = '1.0.0';
-    public const MODULE  = 'CLIENT';
+    public const string VERSION = '1.0.0';
+    public const string MODULE  = 'CLIENT';
 
     private static bool $isNativeBuild = false;
 
@@ -23,13 +23,18 @@ final class Client
     public static function __getData() {
         if (self::$getData === false) {
             $flamesElement = Js::getWindow()->document->querySelector('flames');
+            if ($flamesElement === null) {
+                self::$data = (object)[];
+                self::$getData = true;
+                return self::$data;
+            }
             $data = base64_decode($flamesElement->innerHTML);
             try {
                 $data = substr($data, strpos($data, '|') + 1);
                 $data = substr($data, strpos($data, '|') + 1);
                 $data = substr($data, strpos($data, '|') + 1);
                 $data = unserialize($data);
-            } catch (\Exception|\Error $_) {}
+            } catch (\Exception|\Error) {}
             if ($data === false) {
                 $data = (object)[];
             }
@@ -48,7 +53,7 @@ final class Client
             $data = substr($data, strpos($data, '|') + 1);
             $data = substr($data, strpos($data, '|') + 1);
             $data = unserialize($data);
-        } catch (\Exception|\Error $_) {}
+        } catch (\Exception|\Error) {}
         if ($data === false) {
             $data = (object)[];
         }

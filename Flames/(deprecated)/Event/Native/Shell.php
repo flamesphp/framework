@@ -7,13 +7,8 @@ namespace Flames\Event\Native;
 
 class Shell
 {
-    protected ?string $data = null;
-    protected bool $success = true;
-
-    public function __construct(string $data = null, bool $success = true)
+    public function __construct(protected ?string $data = null, protected bool $success = true)
     {
-        $this->data = $data;
-        $this->success = $success;
     }
 
     public function __get(string $key) : mixed

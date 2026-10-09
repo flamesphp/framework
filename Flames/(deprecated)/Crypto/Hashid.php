@@ -15,7 +15,6 @@ class Hashid
     public const SEP_DIV = 3.5;
     protected $math;
     protected array $shuffledAlphabets;
-    protected int $minHashLength;
     protected string $alphabet;
     protected string $guards;
     protected string $salt;
@@ -24,11 +23,10 @@ class Hashid
     /** @throws \InvalidArgumentException */
     public function __construct(
         string $salt = '',
-        int $minHashLength = 0,
+        protected int $minHashLength = 0,
         string $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890',
     ) {
         $this->salt = mb_convert_encoding($salt, 'UTF-8', mb_detect_encoding($salt));
-        $this->minHashLength = $minHashLength;
         $alphabet = mb_convert_encoding($alphabet, 'UTF-8', mb_detect_encoding($alphabet));
         $this->alphabet = implode('', array_unique($this->multiByteSplit($alphabet)));
         $this->math = $this->getMathExtension();
@@ -177,10 +175,7 @@ class Hashid
         }
 
         if (is_array($ret)) {
-            if (isset($ret[0])) {
-                return $ret[0];
-            }
-            return null;
+            return $ret[0] ?? null;
         }
 
         return $ret;

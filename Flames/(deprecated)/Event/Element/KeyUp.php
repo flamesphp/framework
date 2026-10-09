@@ -19,17 +19,14 @@ use Flames\Element;
  */
 class KeyUp
 {
-    protected Element|null $target = null;
-
     protected bool $ctrlKeyPressed = false;
     protected bool $altKeyPressed = false;
     protected bool $shiftKeyPressed = false;
     protected ?int $keyCode = null;
     protected ?string $key = null;
 
-    public function __construct(Element $target, $event)
+    public function __construct(protected Element $target, $event)
     {
-        $this->target = $target;
         $this->ctrlKeyPressed = $event->ctrlKey;
         $this->altKeyPressed = $event->altKey;
         $this->shiftKeyPressed = $event->shiftKey;
@@ -37,7 +34,7 @@ class KeyUp
 
         try {
             $keyLower = mb_strtolower($event->key);
-        } catch (\Exception|\Error $e) {
+        } catch (\Exception|\Error) {
             $keyLower = strtolower($event->key);
         }
 
@@ -77,13 +74,13 @@ class KeyUp
     {
         try {
             $_keyLower = mb_strtolower($key);
-        } catch (\Exception|\Error $e) {
+        } catch (\Exception|\Error) {
             $_keyLower = strtolower($key);
         }
 
         try {
             $keyLower = mb_strtolower($this->key);
-        } catch (\Exception|\Error $e) {
+        } catch (\Exception|\Error) {
             $keyLower = strtolower($this->key);
         }
 

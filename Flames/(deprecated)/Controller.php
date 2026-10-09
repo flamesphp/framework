@@ -132,7 +132,7 @@ abstract class Controller implements ControllerContract
         return $lastFunc;
     }
 
-    public static function run(?string $method = 'onRequest', Arr|array $data = null)
+    public static function run(?string $method = 'onRequest', Arr|array|null $data = null)
     {
         $controllerClass = static::class;
         $controller = new ($controllerClass);
@@ -148,9 +148,7 @@ abstract class Controller implements ControllerContract
             }
         }
 
-        if ($method === null) {
-            $method = 'onRequest';
-        }
+        $method ??= 'onRequest';
 
         return $controller->{$method}($request);
     }

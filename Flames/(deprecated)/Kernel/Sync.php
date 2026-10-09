@@ -21,7 +21,7 @@ class Sync
                 return self::syncData($basePath, $key);
             }
             return file_get_contents($basePath);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return self::syncData($basePath, $key);
         }
     }
@@ -34,7 +34,7 @@ class Sync
         $success = false;
         try {
             $success = file_put_contents($basePath, $data);
-        } catch (\Exception $e) {}
+        } catch (\Exception) {}
 
         if ($success === false) {
             $mask = umask(0);

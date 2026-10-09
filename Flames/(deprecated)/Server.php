@@ -28,17 +28,17 @@ class Server
         $uniqueId = null;
         try {
             $uniqueId = (string)file_get_contents(ROOT_PATH . '.storage/' . $uniqueIdKey . '.blob');
-        } catch (\Exception $e) {}
+        } catch (\Exception) {}
 
         if ($uniqueId !== '' && $uniqueId !== null) {
             self::$_uniqueId = $uniqueId;
             return self::$_uniqueId;
         }
 
-        $uniqueId = sha1(uniqid() . rand(0, PHP_INT_MAX) . rand(0, PHP_INT_MAX));
+        $uniqueId = sha1(uniqid() . random_int(0, PHP_INT_MAX) . random_int(0, PHP_INT_MAX));
         try {
             file_put_contents(ROOT_PATH . '.storage/' . $uniqueIdKey . '.blob', $uniqueId);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             if (is_dir(ROOT_PATH . '.storage/') === false) {
                 $mask = umask(0);
                 mkdir(ROOT_PATH . '.storage/', 0777, true);

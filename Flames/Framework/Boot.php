@@ -65,13 +65,13 @@ class Boot
     public static function fallbackException(\Throwable $e, ?\Throwable $handlerError = null): void
     {
         self::sendErrorResponse(500, 'text/plain; charset=UTF-8');
-        echo get_class($e) . ': ' . $e->getMessage() . "\n";
+        echo $e::class . ': ' . $e->getMessage() . "\n";
         echo $e->getFile() . ':' . $e->getLine() . "\n\n";
         echo $e->getTraceAsString();
 
         if ($handlerError !== null) {
             echo "\n\n--- Error handler failed ---\n";
-            echo get_class($handlerError) . ': ' . $handlerError->getMessage() . "\n";
+            echo $handlerError::class . ': ' . $handlerError->getMessage() . "\n";
             echo $handlerError->getFile() . ':' . $handlerError->getLine();
         }
     }
@@ -95,6 +95,7 @@ class Boot
     protected static function registerErrorHandler(): void
     {
         if (Env::get('ERROR_HANDLER_ENABLED') !== true) {
+            Shutdown::register();
             return;
         }
 
@@ -110,6 +111,7 @@ class Boot
             self::$errorHandler->pushHandler(new Errors\Handler\PlainTextHandler());
         }
 
+        Errors\Run::addShutdownFinalizer(Shutdown::onShutdown(...));
         self::$errorHandler->register();
     }
 

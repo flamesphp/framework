@@ -13,11 +13,11 @@ use UnexpectedValueException;
  */
 class JWK
 {
-    private const OID = '1.2.840.10045.2.1';
-    private const ASN1_OBJECT_IDENTIFIER = 0x06;
-    private const ASN1_SEQUENCE = 0x10; // also defined in JWT
-    private const ASN1_BIT_STRING = 0x03;
-    private const EC_CURVES = [
+    private const string OID = '1.2.840.10045.2.1';
+    private const int ASN1_OBJECT_IDENTIFIER = 0x06;
+    private const int ASN1_SEQUENCE = 0x10; // also defined in JWT
+    private const int ASN1_BIT_STRING = 0x03;
+    private const array EC_CURVES = [
         'P-256' => '1.2.840.10045.3.1.7', // Len: 64
         'secp256k1' => '1.3.132.0.10', // Len: 64
         'P-384' => '1.3.132.0.34', // Len: 96
@@ -26,7 +26,7 @@ class JWK
 
     // For keys with "kty" equal to "OKP" (Octet Key Pair), the "crv" parameter must contain the key subtype.
     // This library supports the following subtypes:
-    private const OKP_SUBTYPES = [
+    private const array OKP_SUBTYPES = [
         'Ed25519' => true, // RFC 8037
     ];
 
@@ -45,7 +45,7 @@ class JWK
      *
      * @uses parseKey
      */
-    public static function parseKeySet(array $jwks, string $defaultAlg = null): array
+    public static function parseKeySet(array $jwks, ?string $defaultAlg = null): array
     {
         $keys = [];
 
@@ -58,7 +58,7 @@ class JWK
         }
 
         foreach ($jwks['keys'] as $k => $v) {
-            $kid = isset($v['kid']) ? $v['kid'] : $k;
+            $kid = $v['kid'] ?? $k;
             if ($key = self::parseKey($v, $defaultAlg)) {
                 $keys[(string) $kid] = $key;
             }
@@ -86,7 +86,7 @@ class JWK
      *
      * @uses createPemFromModulusAndExponent
      */
-    public static function parseKey(array $jwk, string $defaultAlg = null): ?Key
+    public static function parseKey(array $jwk, ?string $defaultAlg = null): ?Key
     {
         if (empty($jwk)) {
             throw new InvalidArgumentException('JWK must not be empty');

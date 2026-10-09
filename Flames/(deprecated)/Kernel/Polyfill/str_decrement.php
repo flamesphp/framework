@@ -17,7 +17,7 @@ function str_decrement(string $string): string
     }
 
     if (!\in_array(substr($string, -1), ['A', 'a', '0'], true)) {
-        return join('', array_slice(str_split($string), 0, -1)) . chr(ord(substr($string, -1)) - 1);
+        return join('', array_slice(str_split($string), 0, -1)) . chr(ord(substr($string, -1)[0]) - 1);
     }
 
     $carry = '';
@@ -65,7 +65,7 @@ function str_decrement(string $string): string
                 }
 
                 if (!\in_array($char, ['A', 'a', '0'], true)) {
-                    $decremented = chr(ord($char) - 1) . $decremented;
+                    $decremented = chr(ord($char[0]) - 1) . $decremented;
                 }
         }
     }

@@ -29,8 +29,6 @@ class Image
 
     const FORMAT_PNG = 'png';
     const FORMAT_JPG = 'jpg';
-
-    protected string|null $path;
     protected GdImage|null $image;
 
     /**
@@ -40,10 +38,8 @@ class Image
      *
      * @return void
      */
-    public function __construct(string|null $path = null)
+    public function __construct(protected string|null $path = null)
     {
-        $this->path = $path;
-
         if ($this->path !== null) {
             $imageData = file_get_contents($this->path);
             $imageGd = imagecreatefromstring($imageData);
@@ -175,7 +171,7 @@ class Image
         try {
             file_put_contents($path, $buffer);
             return true;
-        } catch (\ErrorException $e) {}
+        } catch (\ErrorException) {}
 
         $dir = dirname($path);
         if (is_dir($dir) === false) {
@@ -187,7 +183,7 @@ class Image
         try {
             file_put_contents($path, $buffer);
             return true;
-        } catch (\ErrorException $e) {}
+        } catch (\ErrorException) {}
 
         return false;
     }

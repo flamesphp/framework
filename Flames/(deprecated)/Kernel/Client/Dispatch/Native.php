@@ -20,15 +20,13 @@ class Native
     public static function register(): void
     {
         $window = Js::getWindow();
-        $window->Flames->Internal->nativeBridgeRequest = function() {
-            return self::onBridgeRequest();
-        };
-        $window->Flames->Internal->nativeBridgeMessage = function(int $id, string $data = null) {
+        $window->Flames->Internal->nativeBridgeRequest = (fn() => self::onBridgeRequest());
+        $window->Flames->Internal->nativeBridgeMessage = function(int $id, ?string $data = null) {
             self::onBridgeMessage($id, $data);
         };
     }
 
-    public static function add(string $action, array $params = null, \Closure $delegate = null): void
+    public static function add(string $action, ?array $params = null, ?\Closure $delegate = null): void
     {
         self::$messageId++;
         self::$messages[self::$messageId] = ['id' => self::$messageId, 'action' => $action, 'params' => $params, 'delegate' => $delegate];
@@ -53,7 +51,7 @@ class Native
         return $messagePack;
     }
 
-    protected static function onBridgeMessage(int $id, string $data = null): void
+    protected static function onBridgeMessage(int $id, ?string $data = null): void
     {
         $data = json_decode(base64_decode($data));
         if (isset(self::$messages[$id]) === false) {

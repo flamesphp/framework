@@ -13,6 +13,7 @@ use Flames\Server\Os;
  */
 class Wsl extends \Flames\Server\Process
 {
+    #[\Override]
     protected int $pid;
 
     /**

@@ -25,17 +25,17 @@ final class Error
         for ($i = 0; $i < count($_traces); $i++) {
             if ($i === 0) {
                 $traces[] = [
-                    'class' => $_traces[$i]['class'],
-                    'function' => $_traces[$i]['function'],
-                    'line' => $e->getLine()
+                    'class'    => $_traces[$i]['class'] ?? '',
+                    'function' => $_traces[$i]['function'] ?? '',
+                    'line'     => $e->getLine(),
                 ];
 
                 continue;
             }
             $traces[] = [
-                'class' => $_traces[$i]['class'],
-                'function' => $_traces[$i]['function'],
-                'line' => $_traces[$i - 1]['line']
+                'class'    => $_traces[$i]['class'] ?? '',
+                'function' => $_traces[$i]['function'] ?? '',
+                'line'     => $_traces[$i - 1]['line'] ?? 0,
             ];
         }
 
@@ -45,7 +45,7 @@ final class Error
                 $maxClassLength = $classLength;
             }
 
-            $lineLength = strlen(($trace['line'] !== null) ? $trace['line'] : '0');
+            $lineLength = strlen((string) ($trace['line'] ?? '0'));
             if ($lineLength > $maxLineLength) {
                 $maxLineLength = $lineLength;
             }
@@ -57,7 +57,7 @@ final class Error
                 $classTrace .= ' ';
             }
 
-            $lineTrace = (($trace['line'] !== null) ? $trace['line'] : '0');
+            $lineTrace = (string) ($trace['line'] ?? '0');
             while (strlen($lineTrace) < $maxLineLength) {
                 $lineTrace = (' ' . $lineTrace);
             }

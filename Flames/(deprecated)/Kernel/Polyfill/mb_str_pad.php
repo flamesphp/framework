@@ -8,13 +8,11 @@ function mb_str_pad(string $string, int $length, string $pad_string = ' ', int $
         throw new \ValueError('mb_str_pad(): Argument #4 ($pad_type) must be STR_PAD_LEFT, STR_PAD_RIGHT, or STR_PAD_BOTH');
     }
 
-    if (null === $encoding) {
-        $encoding = mb_internal_encoding();
-    }
+    $encoding ??= mb_internal_encoding();
 
     try {
         $validEncoding = @mb_check_encoding('', $encoding);
-    } catch (\ValueError $e) {
+    } catch (\ValueError) {
         throw new \ValueError(sprintf('mb_str_pad(): Argument #5 ($encoding) must be a valid encoding, "%s" given', $encoding));
     }
 

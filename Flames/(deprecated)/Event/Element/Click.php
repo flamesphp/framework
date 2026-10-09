@@ -13,11 +13,8 @@ use Flames\Element;
  */
 class Click
 {
-    protected Element|null $target = null;
-
-    public function __construct(Element $target)
+    public function __construct(protected Element $target)
     {
-        $this->target = $target;
     }
 
     public function __get(string $key) : mixed

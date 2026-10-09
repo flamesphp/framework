@@ -15,7 +15,7 @@ class UserAgentParser
 
     public static function getRaw(): ?string
     {
-        $userAgent = (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null);
+        $userAgent = ($_SERVER['HTTP_USER_AGENT'] ?? null);
         if ($userAgent === '') {
             $userAgent = null;
         }
@@ -114,7 +114,7 @@ REGEX
         $browser = $result[self::BROWSER][0];
         $version = $result[self::BROWSER_VERSION][0];
 
-        $lowerBrowser = array_map('strtolower', $result[self::BROWSER]);
+        $lowerBrowser = array_map(strtolower(...), $result[self::BROWSER]);
 
         $find = function( $search, &$key = null, &$value = null ) use ( $lowerBrowser ) {
             $search = (array)$search;
@@ -186,7 +186,7 @@ REGEX
         } elseif( $browser == 'AppleWebKit' ) {
             if( $platform == 'Android' ) {
                 $browser = 'Android Browser';
-            } elseif( strpos((string)$platform, 'BB') === 0 ) {
+            } elseif( str_starts_with((string)$platform, 'BB') ) {
                 $browser  = 'BlackBerry Browser';
                 $platform = 'BlackBerry';
             } elseif( $platform == 'BlackBerry' || $platform == 'PlayBook' ) {

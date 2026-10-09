@@ -22,10 +22,6 @@ use UnexpectedValueException;
 class CachedKeySet implements ArrayAccess
 {
     /**
-     * @var string
-     */
-    private $jwksUri;
-    /**
      * @var ClientInterface
      */
     private $httpClient;
@@ -37,10 +33,6 @@ class CachedKeySet implements ArrayAccess
      * @var CacheItemPoolInterface
      */
     private $cache;
-    /**
-     * @var ?int
-     */
-    private $expiresAfter;
     /**
      * @var ?CacheItemInterface
      */
@@ -62,10 +54,6 @@ class CachedKeySet implements ArrayAccess
      */
     private $maxKeyLength = 64;
     /**
-     * @var bool
-     */
-    private $rateLimit;
-    /**
      * @var string
      */
     private $rateLimitCacheKey;
@@ -73,27 +61,19 @@ class CachedKeySet implements ArrayAccess
      * @var int
      */
     private $maxCallsPerMinute = 10;
-    /**
-     * @var string|null
-     */
-    private $defaultAlg;
 
     public function __construct(
-        string $jwksUri,
+        private readonly string $jwksUri,
         ClientInterface $httpClient,
         RequestFactoryInterface $httpFactory,
         CacheItemPoolInterface $cache,
-        int $expiresAfter = null,
-        bool $rateLimit = false,
-        string $defaultAlg = null
+        private readonly ?int $expiresAfter = null,
+        private readonly bool $rateLimit = false,
+        private readonly ?string $defaultAlg = null
     ) {
-        $this->jwksUri = $jwksUri;
         $this->httpClient = $httpClient;
         $this->httpFactory = $httpFactory;
         $this->cache = $cache;
-        $this->expiresAfter = $expiresAfter;
-        $this->rateLimit = $rateLimit;
-        $this->defaultAlg = $defaultAlg;
         $this->setCacheKeys();
     }
 
@@ -152,7 +132,7 @@ class CachedKeySet implements ArrayAccess
 
         $keys = [];
         foreach ($jwks['keys'] as $k => $v) {
-            $kid = isset($v['kid']) ? $v['kid'] : $k;
+            $kid = $v['kid'] ?? $k;
             $keys[(string) $kid] = $v;
         }
 
@@ -236,9 +216,7 @@ class CachedKeySet implements ArrayAccess
 
     private function getCacheItem(): CacheItemInterface
     {
-        if (\is_null($this->cacheItem)) {
-            $this->cacheItem = $this->cache->getItem($this->cacheKey);
-        }
+        $this->cacheItem ??= $this->cache->getItem($this->cacheKey);
 
         return $this->cacheItem;
     }

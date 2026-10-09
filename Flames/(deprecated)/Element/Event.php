@@ -21,11 +21,8 @@ use Flames\Kernel\Client\Error;
  */
 class Event
 {
-    private $element = null;
-
-    public function __construct($element)
+    public function __construct(private $element)
     {
-        $this->element = $element;
     }
 
     public function click(\Closure $delegate)

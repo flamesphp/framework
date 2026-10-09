@@ -12,4 +12,9 @@ class App
     {
         return self::MODULE === 'SERVER';
     }
+
+    public static function isClient(): bool
+    {
+        return self::MODULE === 'CLIENT';
+    }
 }

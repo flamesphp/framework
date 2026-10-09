@@ -126,7 +126,7 @@ class Keyboard
     {
         try {
             $keyLower = mb_strtolower($key, 'UTF-8');
-        } catch (\Exception|\Error $e) { $keyLower = strtolower($key); }
+        } catch (\Exception|\Error) { $keyLower = strtolower($key); }
 
         return isset(self::$keys[$keyLower]);
     }

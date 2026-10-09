@@ -47,7 +47,7 @@ final class Forge
                 $container = self::getAppContainer($projectRoot);
                 if ($container !== null) {
                     // Use "docker exec" (no compose-file parsing = much faster)
-                    $innerArgs = implode(' ', array_map('escapeshellarg', $filteredArgs));
+                    $innerArgs = implode(' ', array_map(escapeshellarg(...), $filteredArgs));
                     passthru(
                         'docker exec -it ' . escapeshellarg($container) . ' php forge ' . $innerArgs,
                         $exitCode
@@ -85,15 +85,7 @@ final class Forge
         if (file_exists('/.dockerenv') === true) {
             return false; // already inside a container — never self-route
         }
-
-        // Typical socket locations on Linux and macOS (Docker Desktop uses a symlink)
-        foreach (['/var/run/docker.sock', '/run/docker.sock'] as $sock) {
-            if (file_exists($sock)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(['/var/run/docker.sock', '/run/docker.sock'], fn($sock) => file_exists($sock));
     }
 
     /**

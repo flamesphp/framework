@@ -57,7 +57,7 @@ class Platform
      */
     public static function getName(): string
     {
-        $userAgentParser = (new UserAgentParser())->parse();
+        $userAgentParser = new UserAgentParser()->parse();
         return $userAgentParser['platform'];
     }
 

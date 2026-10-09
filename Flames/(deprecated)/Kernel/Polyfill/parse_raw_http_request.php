@@ -24,7 +24,7 @@ function parse_raw_http_request(array &$a_data)
         // you'll have to var_dump $block to understand this and maybe replace \n or \r with a visibile char
 
         // parse uploaded files
-        if (strpos($block, 'application/octet-stream') !== false)
+        if (str_contains($block, 'application/octet-stream'))
         {
             // match "name", then everything after "stream" (optional) except for prepending newlines
             preg_match('/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s', $block, $matches);

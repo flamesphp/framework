@@ -157,9 +157,7 @@ class Element
         }
 
         $classes = $this->getAttribute('class');
-        if ($classes === null) {
-            $classes = '';
-        }
+        $classes ??= '';
 
         $classes = explode(' ', strtolower($classes));
         $classes[] = $class;
@@ -187,9 +185,7 @@ class Element
         }
 
         $classes = $this->getAttribute('class');
-        if ($classes === null) {
-            $classes = '';
-        }
+        $classes ??= '';
 
         $classes = explode(' ', strtolower($classes));
 

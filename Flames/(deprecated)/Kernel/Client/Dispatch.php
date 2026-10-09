@@ -69,8 +69,9 @@ final class Dispatch
     protected static function simulateGlobals() : void
     {
         $location = Js::getWindow()->location;
-        $origin = $location->origin;
-        $_SERVER['REQUEST_URI'] = explode('#', substr($location->href, strlen($origin)))[0];
+        $origin   = (string) $location->origin;
+        $href     = (string) $location->href;
+        $_SERVER['REQUEST_URI'] = explode('#', substr($href, strlen($origin)))[0];
     }
 
     protected static function setDate(): void
@@ -162,14 +163,15 @@ final class Dispatch
             Js::getWindow()->setTimeout(function() use($currentLoadId) {
                 if (self::$currentLoadId <= $currentLoadId) {
                     $location = Js::getWindow()->location;
-                    $origin = $location->origin;
-                    $uri = explode('#', substr($location->href, strlen($origin)))[0];
+                    $origin   = (string) $location->origin;
+                    $href     = (string) $location->href;
+                    $uri = explode('#', substr($href, strlen($origin)))[0];
                     \Flames\Browser\Page::load($uri, null, true);
                 }
             }, 150);
         }
 
-        \Flames\Kernel::__injector();
+        \Flames\Kernel\Client::__injector();
 
         try {
             self::dispatchNativeBuild();
@@ -241,18 +243,20 @@ final class Dispatch
 
             $window = Js::getWindow();
             $location = $window->location;
-            $origin = $location->origin;
-            self::$currentUri = explode('#', substr($location->href, strlen($origin)))[0];
+            $origin   = (string) $location->origin;
+            $href     = (string) $location->href;
+            self::$currentUri = explode('#', substr($href, strlen($origin)))[0];
 
             $window->setInterval(function() use($location) {
                 try {
-                    $origin = $location->origin;
-                    $currentUri = explode('#', substr($location->href, strlen($origin)))[0];
+                    $origin     = (string) $location->origin;
+                    $href       = (string) $location->href;
+                    $currentUri = explode('#', substr($href, strlen($origin)))[0];
                     if ($currentUri !== self::$currentUri) {
                         self::$currentUri = $currentUri;
                         \Flames\Browser\Page::load($currentUri, null, true);
                     }
-                } catch (\Exception|\Error $_) {}
+                } catch (\Exception|\Error) {}
             }, 100);
         } catch (\Exception|\Error $e) {
             Error::handler($e);
@@ -281,7 +285,7 @@ final class Dispatch
 
     protected static function dispatchNativeBuildEvents()
     {
-        Kernel::__setNativeBuild(true);
+        \Flames\Kernel\Client::__setNativeBuild(true);
 
         if (class_exists('\\App\\Client\\Event\\Native') === true) {
             $ready = new \App\Client\Event\Native();

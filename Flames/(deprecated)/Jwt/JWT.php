@@ -19,9 +19,9 @@ use UnexpectedValueException;
  */
 class JWT
 {
-    private const ASN1_INTEGER = 0x02;
-    private const ASN1_SEQUENCE = 0x10;
-    private const ASN1_BIT_STRING = 0x03;
+    private const int ASN1_INTEGER = 0x02;
+    private const int ASN1_SEQUENCE = 0x10;
+    private const int ASN1_BIT_STRING = 0x03;
 
     /**
      * When checking nbf, iat or expiration times,
@@ -88,10 +88,10 @@ class JWT
     public static function decode(
         string $jwt,
         $keyOrKeyArray,
-        stdClass &$headers = null
+        ?stdClass &$headers = null
     ): stdClass {
         // Validate JWT
-        $timestamp = \is_null(static::$timestamp) ? \time() : static::$timestamp;
+        $timestamp = static::$timestamp ?? \time();
 
         if (empty($keyOrKeyArray)) {
             throw new InvalidArgumentException('Key may not be empty');
@@ -100,7 +100,7 @@ class JWT
         if (\count($tks) !== 3) {
             throw new UnexpectedValueException('Wrong number of segments');
         }
-        list($headb64, $bodyb64, $cryptob64) = $tks;
+        [$headb64, $bodyb64, $cryptob64] = $tks;
         $headerRaw = static::urlsafeB64Decode($headb64);
         if (null === ($header = static::jsonDecode($headerRaw))) {
             throw new UnexpectedValueException('Invalid header encoding');
@@ -192,8 +192,8 @@ class JWT
         array $payload,
         $key,
         string $alg,
-        string $keyId = null,
-        array $head = null
+        ?string $keyId = null,
+        ?array $head = null
     ): string {
         $header = ['typ' => 'JWT'];
         if (isset($head) && \is_array($head)) {
@@ -234,7 +234,7 @@ class JWT
         if (empty(static::$supported_algs[$alg])) {
             throw new DomainException('Algorithm not supported');
         }
-        list($function, $algorithm) = static::$supported_algs[$alg];
+        [$function, $algorithm] = static::$supported_algs[$alg];
         switch ($function) {
             case 'hash_hmac':
                 if (!\is_string($key)) {
@@ -302,7 +302,7 @@ class JWT
             throw new DomainException('Algorithm not supported');
         }
 
-        list($function, $algorithm) = static::$supported_algs[$alg];
+        [$function, $algorithm] = static::$supported_algs[$alg];
         switch ($function) {
             case 'openssl':
                 $success = \openssl_verify($msg, $signature, $keyMaterial, $algorithm); // @phpstan-ignore-line
@@ -517,9 +517,7 @@ class JWT
             JSON_ERROR_UTF8 => 'Malformed UTF-8 characters' //PHP >= 5.3.3
         ];
         throw new DomainException(
-            isset($messages[$errno])
-            ? $messages[$errno]
-            : 'Unknown JSON error: ' . $errno
+            $messages[$errno] ?? 'Unknown JSON error: ' . $errno
         );
     }
 
@@ -548,7 +546,7 @@ class JWT
     {
         // Separate the signature into r-value and s-value
         $length = max(1, (int) (\strlen($sig) / 2));
-        list($r, $s) = \str_split($sig, $length);
+        [$r, $s] = \str_split($sig, $length);
 
         // Trim leading zeros
         $r = \ltrim($r, "\x00");
@@ -605,9 +603,9 @@ class JWT
     private static function signatureFromDER(string $der, int $keySize): string
     {
         // OpenSSL returns the ECDSA signatures as a binary ASN.1 DER SEQUENCE
-        list($offset, $_) = self::readDER($der);
-        list($offset, $r) = self::readDER($der, $offset);
-        list($offset, $s) = self::readDER($der, $offset);
+        [$offset, $_] = self::readDER($der);
+        [$offset, $r] = self::readDER($der, $offset);
+        [$offset, $s] = self::readDER($der, $offset);
 
         // Convert r-value and s-value from signed two's compliment to unsigned
         // big-endian integers

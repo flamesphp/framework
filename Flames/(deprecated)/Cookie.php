@@ -10,19 +10,14 @@ class Cookie
 {
     public static function set(string $key, mixed $value, ?int $expireTimestamp = null): void
     {
-        if ($expireTimestamp === null) {
-            $expireTimestamp = (time() + 30758400);
-        }
+        $expireTimestamp ??= time() + 30758400;
 
-        setcookie($key, $value, $expireTimestamp, '/');
+        setcookie($key, $value, ['expires' => $expireTimestamp, 'path' => '/']);
     }
 
     public static function get(string $key): string|null
     {
-        if (isset($_COOKIE[$key])) {
-            return $_COOKIE[$key];
-        }
-        return null;
+        return $_COOKIE[$key] ?? null;
     }
 
     public static function remove(string $key): void
@@ -31,7 +26,7 @@ class Cookie
             return;
         }
 
-        setcookie($key, '', -1);
+        setcookie($key, '', ['expires' => -1]);
     }
 
     public static function getAll(): Arr
