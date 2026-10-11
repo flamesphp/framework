@@ -26,6 +26,7 @@
     "flamesphp/geometry": "^1.0",
     "flamesphp/http": "^1.0",
     "flamesphp/interfaces": "^1.0",
+    "flamesphp/js": "^1.0",
     "flamesphp/memory": "^1.0",
     "flamesphp/mesh": "^1.0",
     "flamesphp/microservice": "^1.0",
