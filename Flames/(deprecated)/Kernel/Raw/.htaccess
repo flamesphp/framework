@@ -7,7 +7,7 @@ AddDefaultCharset UTF-8
 # Flames security and redirects
 <IfModule mod_rewrite.c>
 	RewriteEngine On
-    RewriteRule ^docker-compose.yml(.*)$ /$1 [NC,L]
+    RewriteRule ^compose.yml(.*)$ /$1 [NC,L]
     RewriteRule ^.env(.*)$ /$1 [NC,L]
     RewriteRule ^.env.dist(.*)$ /$1 [NC,L]
     RewriteRule ^.gitignore(.*)$ /$1 [NC,L]
@@ -17,7 +17,7 @@ AddDefaultCharset UTF-8
     RewriteRule ^.htaccess(.*)$ /$1 [NC,L]
     RewriteRule ^bin(.*)$ /$1 [NC,L]
     RewriteRule ^.docker/(.*)$ /$1 [NC,L]
-    RewriteRule ^.cache/(.*)$ /$1 [NC,L]
+    RewriteRule ^.tmp/(.*)$ /$1 [NC,L]
     RewriteRule ^.vendor/(.*)$ /$1 [NC,L]
     RewriteRule ^App/(.*)$ /$1 [NC,L]
     RewriteRule ^Service/(.*)$ /$1 [NC,L]

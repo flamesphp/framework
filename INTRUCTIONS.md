@@ -190,7 +190,7 @@ Database-backed job queue. Extend this class and override `onMessage()` to proce
 
 | Method | Signature | How it works |
 |--------|-----------|--------------|
-| `mountData()` | `public static function mountData(string $class): Arr` | Reads class attributes and caches result in `.cache/queue/{sha1(class)}`. Invalidates when source file mtime changes. |
+| `mountData()` | `public static function mountData(string $class): Arr` | Reads class attributes and caches result in `.tmp/queue/{sha1(class)}`. Invalidates when source file mtime changes. |
 | `__getReflection()` | `private static function __getReflection(string $class): Arr` | Parses `Database`, `Table`, `Delay`, `Timeout`, `TimeLimit` attributes via reflection. Auto-generates table name if not set. |
 
 ---
@@ -319,7 +319,7 @@ Resolves and creates the framework cache directory path.
 
 | Method | Signature | How it works |
 |--------|-----------|--------------|
-| `getPath()` | `public static function getPath(): string` | Returns writable cache path. Reads `CACHE_PATH` from env; falls back to `sys_get_temp_dir()/.cache/` or `ROOT_PATH/.cache/`. Ensures cache is **not** inside `public/`. Result is memoized via `Functions::once()`. |
+| `getPath()` | `public static function getPath(): string` | Returns writable cache path. Reads `TMP_PATH` from env (relative values resolve under `ROOT_PATH`); falls back to `sys_get_temp_dir()/.tmp/` or `ROOT_PATH/.tmp/`. Ensures cache is **not** inside `public/`. Result is memoized via `Functions::once()`. |
 | `forceCreateDirectory()` | `protected static function forceCreateDirectory(string $path)` | Creates directory with `0777` permissions. |
 
 ---

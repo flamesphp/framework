@@ -17,7 +17,7 @@ class Data
     {
         $path = (ROOT_PATH . str_replace('\\', '/', $class) . '.php');
 
-        $basePath  = (ROOT_PATH . '.cache/queue/');
+        $basePath  = rtrim(\Flames\Framework\Cache::getPath(), '/') . '/queue/';
         $cachePath = ($basePath . sha1($class));
         $currentTime = filemtime($path);
 

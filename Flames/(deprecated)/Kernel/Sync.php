@@ -13,7 +13,7 @@ class Sync
 {
     public static function getData(string $key)
     {
-        $basePath = (ROOT_PATH . '.cache/sync/' . sha1($key));
+        $basePath = rtrim(\Flames\Framework\Cache::getPath(), '/') . '/sync/' . sha1($key);
 
         try {
             $diffTs = (microtime(true) - filemtime($basePath));
@@ -38,7 +38,7 @@ class Sync
 
         if ($success === false) {
             $mask = umask(0);
-            mkdir(ROOT_PATH . '.cache/sync/', 0777, true);
+            mkdir(rtrim(\Flames\Framework\Cache::getPath(), '/') . '/sync/', 0777, true);
             umask($mask);
             file_put_contents($basePath, $data);
         }

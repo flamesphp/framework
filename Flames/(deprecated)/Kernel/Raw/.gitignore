@@ -1,6 +1,6 @@
 syntax: glob
 vendor/
-.cache/
+.tmp/
 .docker/.data
 .idea/
 .env

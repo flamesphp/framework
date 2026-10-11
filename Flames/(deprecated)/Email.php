@@ -31,7 +31,7 @@ class Email
     {
         $domain = mb_strtolower(explode('@', trim($email))[1]);
 
-        $basePath = (ROOT_PATH . '.cache/sync/email/' . sha1($domain));
+        $basePath = (rtrim(\Flames\Framework\Cache::getPath(), '/') . '/sync/email/' . sha1($domain));
         if (file_exists($basePath) === true) {
             return true;
         }
@@ -43,7 +43,7 @@ class Email
                 return $checkDns;
             } catch (\Exception) {
                 $mask = umask(0);
-                mkdir(ROOT_PATH . '.cache/sync/email/', 0777, true);
+                mkdir(rtrim(\Flames\Framework\Cache::getPath(), '/') . '/sync/email/', 0777, true);
                 umask($mask);
                 file_put_contents($basePath, '');
                 return $checkDns;
@@ -66,7 +66,7 @@ class Email
 
     public static function getDisposableDomainsData(string $disposableEmailUri)
     {
-        $basePath = (ROOT_PATH . '.cache/sync/email/25fcf48d4316bbba30bb7c391a79714a11858f1');
+        $basePath = (rtrim(\Flames\Framework\Cache::getPath(), '/') . '/sync/email/25fcf48d4316bbba30bb7c391a79714a11858f1');
 
         try {
             $diffTs = (microtime(true) - filemtime($basePath));
@@ -87,7 +87,7 @@ class Email
             return file($basePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         } catch (\Exception) {
             $mask = umask(0);
-            mkdir(ROOT_PATH . '.cache/sync/email/', 0777, true);
+            mkdir(rtrim(\Flames\Framework\Cache::getPath(), '/') . '/sync/email/', 0777, true);
             umask($mask);
             file_put_contents($basePath, $data);
         }

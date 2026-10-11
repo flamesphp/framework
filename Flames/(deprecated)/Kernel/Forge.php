@@ -97,7 +97,7 @@ final class Forge
      */
     private static function getAppContainer(string $projectRoot): ?string
     {
-        $composePath = $projectRoot . DIRECTORY_SEPARATOR . 'docker-compose.yml';
+        $composePath = $projectRoot . DIRECTORY_SEPARATOR . 'compose.yml';
         if (file_exists($composePath) === false) {
             return null;
         }

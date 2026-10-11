@@ -83,9 +83,9 @@ Working in progress...
 
 #### Setup Docker with Composer
 * Clone (or download zip) our [skeleton repository](https://github.com/flamesphp/skeleton).
-* Choose PHP Interpreter containers *(in docker-compose.yml)*
+* Choose PHP Interpreter containers *(in compose.yml)*
 * Run `composer update` in your root folder
-* Run `docker-compose up -d` in your root folder
+* Run `forge container up` in your root folder
 * Run `php bin install` in your docker php container
 
 #### Setup Local with Composer
@@ -100,8 +100,8 @@ Working in progress...
 
 #### Setup Docker
 * Clone (or download zip) this repository.
-* Choose PHP Interpreter containers *(in docker-compose.yml)*
-* Run `docker-compose up -d` in your root folder
+* Choose PHP Interpreter containers *(in compose.yml)*
+* Run `forge container up` in your root folder
 * Run `git submodule add git@github.com:{user}/{repo}.git App` to setup your app repository *(optional)*
 * Run `php bin install` in your docker php container
 

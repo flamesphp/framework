@@ -120,7 +120,7 @@ class Image
      */
     public function getText() : string|null
     {
-        $tmpDir = (ROOT_PATH . '.cache/ocr-image/');
+        $tmpDir = rtrim(\Flames\Framework\Cache::getPath(), '/') . '/ocr-image/';
         if (is_dir($tmpDir) === false) {
             $mask = umask(0);
             mkdir($tmpDir, 0777, true);

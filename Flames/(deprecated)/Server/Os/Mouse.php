@@ -45,7 +45,7 @@ class Mouse
             $tmpData .= ("\n" . file_get_contents(str_replace('/', '\\', (FLAMES_PATH . 'Server/OS/Mouse/LeftClickMouseJoin.ps1'))));
         }
 
-        $tmpPath = str_replace('/', '\\', (ROOT_PATH . '.cache/powershell/' . Hash::getRandom() . '.ps1'));
+        $tmpPath = str_replace('/', '\\', rtrim(\Flames\Framework\Cache::getPath(), '/') . '/powershell/' . Hash::getRandom() . '.ps1');
         $tmpDir = dirname($tmpPath);
         if (is_dir($tmpDir) === false) {
             $mask = umask(0);

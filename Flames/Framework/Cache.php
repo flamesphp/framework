@@ -12,10 +12,10 @@ class Cache
     public static function getPath(): string
     {
         return Functions::once(function() {
-            $cachePath = Env::get('CACHE_PATH');
+            $cachePath = Env::get('TMP_PATH');
 
             if (!empty($cachePath) && !str_starts_with($cachePath, '/') && !str_starts_with($cachePath, '~')) {
-                $cachePath = ('../' . $cachePath);
+                $cachePath = ROOT_PATH . ltrim($cachePath, '/');
             }
 
             if (empty($cachePath)) {
@@ -27,7 +27,7 @@ class Cache
                     $cachePath .= '/';
                 }
 
-                $cachePath .= '.cache/';
+                $cachePath .= '.tmp/';
 
                 if (empty($cachePath) || !is_dir($cachePath) || !is_writable($cachePath)) {
                     self::forceCreateDirectory($cachePath);
@@ -42,7 +42,7 @@ class Cache
             $realPublic = rtrim(realpath(ROOT_PATH . 'public') ?: (ROOT_PATH . 'public'), '/') . '/';
 
             if (str_starts_with($realCache, $realPublic)) {
-                $cachePath = ROOT_PATH . '.cache/';
+                $cachePath = ROOT_PATH . '.tmp/';
                 self::forceCreateDirectory($cachePath);
                 $realCache = $cachePath;
             }

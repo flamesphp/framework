@@ -17,7 +17,7 @@ class Image
             throw new Exception('Unix not supported yet.');
         }
 
-        $tmpDir = (ROOT_PATH . '.cache\\os-image\\');
+        $tmpDir = str_replace('/', '\\', rtrim(\Flames\Framework\Cache::getPath(), '/') . '/os-image/');
         if (is_dir($tmpDir) === false) {
             $mask = umask(0);
             mkdir($tmpDir, 0777, true);
