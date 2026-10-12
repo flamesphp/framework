@@ -43,6 +43,15 @@ class Dispatch
             return false;
         }
 
+        return self::dispatchMatch($match);
+    }
+
+    public static function dispatchMatch(\Flames\Router\RouteMatch $match): bool
+    {
+        if (Event::dispatch(InitializeContract::class, 'Initialize', 'onInitialize') === false) {
+            return false;
+        }
+
         return self::dispatchRoute($match);
     }
 
